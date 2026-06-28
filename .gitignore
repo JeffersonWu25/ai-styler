@@ -1,0 +1,21 @@
+# Python
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+*.pyc
+.Python
+
+# iOS / Xcode
+ios/**/DerivedData/
+ios/**/*.xcuserstate
+ios/**/xcuserdata/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Environment
+.env
+
+# macOS
+.DS_Store
