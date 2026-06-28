@@ -5,9 +5,12 @@ from app.config import ASSETS_DIR
 
 TRY_ON_PROMPT = """\
 Image 1: full-body front photo of the person.
-Images 2 onward: clothing reference photos for the outfit.
+Image 2: Shein jeans reference photo.
+Image 3: Stussy jacket reference photo.
+Image 4: New Balance shoes reference photo.
 
 Edit Image 1 to dress the person using the provided clothing images. \
+Fit the jeans, jacket, and shoes onto the person as a complete outfit. \
 Do not change their face, facial features, skin tone, body shape, pose, or identity in any way. \
 Preserve their exact likeness, expression, hairstyle, and proportions. \
 Replace only the clothing, fitting the garments naturally to their existing pose and body geometry with realistic fabric behavior. \
@@ -42,11 +45,11 @@ class Outfit:
 OUTFITS: dict[str, Outfit] = {
     "old-money": Outfit(
         id="old-money",
-        name="Old Money",
+        name="Streetwear",
         garment_filenames=(
-            "pants_front.png",
-            "sweater_vneck.png",
-            "loafers.png",
+            "shein-jeans.png",
+            "stussy-jacket.png",
+            "new-balance-shoes.png",
         ),
         prompt=TRY_ON_PROMPT,
     ),

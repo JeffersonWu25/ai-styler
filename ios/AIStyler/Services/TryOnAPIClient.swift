@@ -9,39 +9,6 @@ struct TryOnResponse: Decodable {
     let outfitName: String
 }
 
-private struct APIErrorResponse: Decodable {
-    let detail: APIErrorDetail?
-
-    var message: String? {
-        switch detail {
-        case .string(let value):
-            return value
-        case .array(let values):
-            return values.first?.msg
-        case .none:
-            return nil
-        }
-    }
-
-    private enum APIErrorDetail: Decodable {
-        case string(String)
-        case array([APIErrorItem])
-
-        init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            if let string = try? container.decode(String.self) {
-                self = .string(string)
-                return
-            }
-            self = .array(try container.decode([APIErrorItem].self))
-        }
-    }
-
-    private struct APIErrorItem: Decodable {
-        let msg: String
-    }
-}
-
 enum TryOnAPIError: LocalizedError {
     case invalidResponse
     case serverUnavailable
@@ -149,8 +116,7 @@ struct TryOnAPIClient {
         }
 
         if !(200...299).contains(httpResponse.statusCode) {
-            if let apiError = try? JSONDecoder().decode(APIErrorResponse.self, from: data),
-               let message = apiError.message {
+            if let message = Self.parseAPIErrorMessage(from: data) {
                 throw TryOnAPIError.apiError(message)
             }
             throw TryOnAPIError.apiError("Try-on failed with status \(httpResponse.statusCode).")
@@ -161,6 +127,23 @@ struct TryOnAPIClient {
         } catch {
             throw TryOnAPIError.invalidResponse
         }
+    }
+
+    private static func parseAPIErrorMessage(from data: Data) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let detail = json["detail"] else {
+            return nil
+        }
+
+        if let message = detail as? String {
+            return message
+        }
+
+        if let items = detail as? [[String: Any]] {
+            return items.first?["msg"] as? String
+        }
+
+        return nil
     }
 
     private func appendFile(

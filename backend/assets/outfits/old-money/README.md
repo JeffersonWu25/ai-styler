@@ -1,11 +1,11 @@
-# Old Money outfit assets
+# Outfit assets (`old-money` id)
 
-Garment reference PNGs sent to GPT Image 2 alongside the user's front photo.
+Garment reference images sent to GPT Image 2 alongside the user's front photo.
 
-**Current files** are simple colored placeholders for local development. Replace them with real product/clothing photos for better try-on quality:
+Current files:
 
-- `pants_front.png`
-- `sweater_vneck.png`
-- `loafers.png`
+- `shein-jeans.png`
+- `stussy-jacket.png`
+- `new-balance-shoes.png`
 
-These paths are configured in `backend/app/catalog/outfits.py`.
+Configured in `backend/app/catalog/outfits.py`.
