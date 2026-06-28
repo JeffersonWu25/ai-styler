@@ -1,9 +1,11 @@
 # Old Money outfit assets
 
-Add garment reference PNGs here before running try-on (Phase 3):
+Garment reference PNGs sent to GPT Image 2 alongside the user's front photo.
+
+**Current files** are simple colored placeholders for local development. Replace them with real product/clothing photos for better try-on quality:
 
 - `pants_front.png`
 - `sweater_vneck.png`
 - `loafers.png`
 
-These images are sent to GPT Image 2 alongside the user's front photo.
+These paths are configured in `backend/app/catalog/outfits.py`.

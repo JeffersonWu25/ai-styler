@@ -39,13 +39,27 @@ curl http://localhost:8000/health
 
 API docs: http://localhost:8000/docs
 
+### Try-on endpoint
+
+`POST /try-on` accepts multipart fields `front`, `side`, and `back` (JPEG/PNG). It uses the user's **front** photo plus hardcoded garment references from `backend/assets/outfits/old-money/` and calls OpenAI `gpt-image-2`.
+
+Set `OPENAI_API_KEY` in `backend/.env` before testing try-on. Replace the placeholder garment PNGs with real clothing reference photos for better results.
+
 ## iOS setup
 
 1. Open `ios/AIStyler.xcodeproj` in Xcode
 2. Select the **AIStyler** scheme and an iPhone simulator
 3. Press **Run** (⌘R)
 
-You should see a placeholder screen: "Phase 1 scaffold ready."
+You should see the photo capture screen with three slots (Front, Side, Back).
+
+Start the backend first so the app can show **Connected** at the top:
+
+```bash
+cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
+```
+
+> **Physical device:** change `AppConfig.apiBaseURL` in `ios/AIStyler/Services/AppConfig.swift` to your Mac's LAN IP (e.g. `http://192.168.1.10:8000`).
 
 > **Note:** Set your Development Team in Xcode (Signing & Capabilities) before running on a physical device.
 
@@ -54,8 +68,8 @@ You should see a placeholder screen: "Phase 1 scaffold ready."
 | Phase | Status |
 |-------|--------|
 | 1. Scaffold | Done |
-| 2. Photo capture UI | Pending |
-| 3. GPT Image 2 integration | Pending |
+| 2. Photo capture UI | Done |
+| 3. GPT Image 2 integration | Done |
 | 4. Polish | Pending |
 
 See [PLAN.md](PLAN.md) for full details.
