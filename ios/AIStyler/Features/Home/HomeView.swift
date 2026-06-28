@@ -1,18 +1,13 @@
 import SwiftUI
 
-struct PhotoCaptureView: View {
+struct HomeView: View {
     @Bindable var userPhotos: UserPhotos
+    @Bindable var tryOnSession: TryOnSession
 
     @State private var showOnboarding = false
     @State private var backendConnected: Bool?
     @State private var isCheckingBackend = false
     @State private var backendError: String?
-
-    @State private var isGenerating = false
-    @State private var tryOnError: String?
-    @State private var resultImage: UIImage?
-    @State private var resultOutfitName: String?
-    @State private var showResult = false
 
     private let apiClient = TryOnAPIClient()
 
@@ -32,11 +27,11 @@ struct PhotoCaptureView: View {
                         )
                     }
 
-                    tryOnSection
+                    generateSection
                 }
                 .padding()
             }
-            .navigationTitle("Your Photos")
+            .navigationTitle("Home")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Tips") { showOnboarding = true }
@@ -45,43 +40,9 @@ struct PhotoCaptureView: View {
             .sheet(isPresented: $showOnboarding) {
                 OnboardingView()
             }
-            .fullScreenCover(isPresented: $showResult) {
-                if let resultImage, let resultOutfitName {
-                    TryOnResultView(
-                        image: resultImage,
-                        outfitName: resultOutfitName,
-                        onDone: { showResult = false }
-                    )
-                }
-            }
-            .overlay {
-                if isGenerating {
-                    generatingOverlay
-                }
-            }
             .task {
                 await refreshBackendStatus()
             }
-        }
-    }
-
-    private var generatingOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-
-            VStack(spacing: 16) {
-                ProgressView()
-                    .controlSize(.large)
-                Text("Creating your look…")
-                    .font(.headline)
-                Text("This can take up to 2 minutes.")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(24)
-            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
-            .padding()
         }
     }
 
@@ -126,7 +87,7 @@ struct PhotoCaptureView: View {
         )
     }
 
-    private var tryOnSection: some View {
+    private var generateSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Outfit")
                 .font(.headline)
@@ -134,28 +95,24 @@ struct PhotoCaptureView: View {
                 .font(.title3.bold())
 
             Button {
-                Task { await runTryOn() }
+                Task { await tryOnSession.generate(from: userPhotos) }
             } label: {
-                Text(isGenerating ? "Generating…" : "Try On Outfit")
+                Text(tryOnSession.isGenerating ? "Generating…" : "Generate")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(!isReadyForTryOn)
+            .disabled(!isReadyToGenerate)
 
-            if let tryOnError {
-                Text(tryOnError)
-                    .font(.caption)
-                    .foregroundStyle(.red)
-            } else if !userPhotos.isComplete {
+            if !userPhotos.isComplete {
                 Text("Add valid front, side, and back photos to continue.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else if backendConnected != true {
-                Text("Connect to the backend before trying on an outfit.")
+                Text("Connect to the backend before generating.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
-                Text("Uses your front photo plus the hardcoded outfit references.")
+                Text("Your look will appear in Explore.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -168,8 +125,8 @@ struct PhotoCaptureView: View {
         )
     }
 
-    private var isReadyForTryOn: Bool {
-        userPhotos.isComplete && backendConnected == true && !isGenerating
+    private var isReadyToGenerate: Bool {
+        userPhotos.isComplete && backendConnected == true && !tryOnSession.isGenerating
     }
 
     @MainActor
@@ -185,36 +142,8 @@ struct PhotoCaptureView: View {
             backendError = error.localizedDescription
         }
     }
-
-    @MainActor
-    private func runTryOn() async {
-        guard let front = userPhotos.jpegData(for: .front),
-              let side = userPhotos.jpegData(for: .side),
-              let back = userPhotos.jpegData(for: .back) else {
-            tryOnError = "Missing one or more photos."
-            return
-        }
-
-        isGenerating = true
-        tryOnError = nil
-        defer { isGenerating = false }
-
-        do {
-            let response = try await apiClient.tryOn(front: front, side: side, back: back)
-            guard let data = Data(base64Encoded: response.imageBase64),
-                  let image = UIImage(data: data) else {
-                tryOnError = "Could not decode the generated image."
-                return
-            }
-            resultImage = image
-            resultOutfitName = response.outfitName
-            showResult = true
-        } catch {
-            tryOnError = error.localizedDescription
-        }
-    }
 }
 
 #Preview {
-    PhotoCaptureView(userPhotos: UserPhotos())
+    HomeView(userPhotos: UserPhotos(), tryOnSession: TryOnSession())
 }

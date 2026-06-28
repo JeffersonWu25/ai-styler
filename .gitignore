@@ -19,3 +19,5 @@ ios/**/xcuserdata/
 
 # macOS
 .DS_Store
+
+PLAN.md

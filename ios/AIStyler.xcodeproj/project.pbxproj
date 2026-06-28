@@ -18,8 +18,11 @@
 		B10000060000000000000006 /* TryOnAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000060000000000000006 /* TryOnAPIClient.swift */; };
 		B10000070000000000000007 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000070000000000000007 /* OnboardingView.swift */; };
 		B10000080000000000000008 /* PhotoSlotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000080000000000000008 /* PhotoSlotCard.swift */; };
-		B10000090000000000000009 /* PhotoCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000090000000000000009 /* PhotoCaptureView.swift */; };
+		B10000090000000000000009 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000090000000000000009 /* HomeView.swift */; };
+		B100000C000000000000000C /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000C000000000000000C /* ExploreView.swift */; };
+		B100000D000000000000000D /* TryOnSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000D000000000000000D /* TryOnSession.swift */; };
 		B100000A000000000000000A /* TryOnResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000A000000000000000A /* TryOnResultView.swift */; };
+		B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000B000000000000000B /* TryOnCompositeImage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,8 +38,11 @@
 		B20000060000000000000006 /* TryOnAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnAPIClient.swift; sourceTree = "<group>"; };
 		B20000070000000000000007 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B20000080000000000000008 /* PhotoSlotCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSlotCard.swift; sourceTree = "<group>"; };
-		B20000090000000000000009 /* PhotoCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoCaptureView.swift; sourceTree = "<group>"; };
+		B20000090000000000000009 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B200000C000000000000000C /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		B200000D000000000000000D /* TryOnSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnSession.swift; sourceTree = "<group>"; };
 		B200000A000000000000000A /* TryOnResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnResultView.swift; sourceTree = "<group>"; };
+		B200000B000000000000000B /* TryOnCompositeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnCompositeImage.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -91,6 +97,8 @@
 			isa = PBXGroup;
 			children = (
 				A50000080000000000000008 /* Onboarding */,
+				A500000B000000000000000B /* Home */,
+				A500000C000000000000000C /* Explore */,
 				A50000090000000000000009 /* PhotoCapture */,
 				A500000A000000000000000A /* TryOn */,
 			);
@@ -104,6 +112,7 @@
 				B20000040000000000000004 /* ImageCompressor.swift */,
 				B20000050000000000000005 /* PhotoValidator.swift */,
 				B20000060000000000000006 /* TryOnAPIClient.swift */,
+				B200000B000000000000000B /* TryOnCompositeImage.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -113,6 +122,7 @@
 			children = (
 				B20000010000000000000001 /* PhotoSlot.swift */,
 				B20000020000000000000002 /* UserPhotos.swift */,
+				B200000D000000000000000D /* TryOnSession.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -129,9 +139,24 @@
 			isa = PBXGroup;
 			children = (
 				B20000080000000000000008 /* PhotoSlotCard.swift */,
-				B20000090000000000000009 /* PhotoCaptureView.swift */,
 			);
 			path = PhotoCapture;
+			sourceTree = "<group>";
+		};
+		A500000B000000000000000B /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				B20000090000000000000009 /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		A500000C000000000000000C /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				B200000C000000000000000C /* ExploreView.swift */,
+			);
+			path = Explore;
 			sourceTree = "<group>";
 		};
 		A500000A000000000000000A /* TryOn */ = {
@@ -221,8 +246,11 @@
 				B10000060000000000000006 /* TryOnAPIClient.swift in Sources */,
 				B10000070000000000000007 /* OnboardingView.swift in Sources */,
 				B10000080000000000000008 /* PhotoSlotCard.swift in Sources */,
-				B10000090000000000000009 /* PhotoCaptureView.swift in Sources */,
+				B10000090000000000000009 /* HomeView.swift in Sources */,
+				B100000C000000000000000C /* ExploreView.swift in Sources */,
+				B100000D000000000000000D /* TryOnSession.swift in Sources */,
 				B100000A000000000000000A /* TryOnResultView.swift in Sources */,
+				B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

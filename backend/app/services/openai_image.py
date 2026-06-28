@@ -16,24 +16,25 @@ class OpenAIImageError(Exception):
 
 async def generate_try_on(
     *,
-    user_front_image: bytes,
-    user_front_filename: str,
+    user_images: list[tuple[str, bytes]],
     garment_paths: list[Path],
     prompt: str,
 ) -> bytes:
     if not settings.openai_api_key:
         raise OpenAIImageError("OPENAI_API_KEY is not configured on the server.")
 
-    files: list[tuple[str, tuple[str, bytes, str]]] = [
-        (
-            "image[]",
+    files: list[tuple[str, tuple[str, bytes, str]]] = []
+    for filename, image_bytes in user_images:
+        files.append(
             (
-                user_front_filename,
-                user_front_image,
-                _content_type(user_front_filename),
-            ),
-        ),
-    ]
+                "image[]",
+                (
+                    filename,
+                    image_bytes,
+                    _content_type(filename),
+                ),
+            )
+        )
 
     for garment_path in garment_paths:
         garment_bytes = garment_path.read_bytes()

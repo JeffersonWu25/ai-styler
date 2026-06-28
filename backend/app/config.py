@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_image_model: str = "gpt-image-2"
     openai_image_quality: str = "medium"
-    openai_image_size: str = "1024x1536"
+    openai_image_size: str = "1536x1024"
     default_outfit_id: str = "old-money"
 
 

@@ -19,8 +19,8 @@ async def try_on(
     back: UploadFile = File(...),
 ) -> dict[str, str]:
     front_bytes = await _read_image(front, "front")
-    await _read_image(side, "side")
-    await _read_image(back, "back")
+    side_bytes = await _read_image(side, "side")
+    back_bytes = await _read_image(back, "back")
 
     try:
         outfit = get_outfit(settings.default_outfit_id)
@@ -30,12 +30,15 @@ async def try_on(
     except KeyError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    front_filename = front.filename or "front.jpg"
+    user_images = [
+        (front.filename or "front.jpg", front_bytes),
+        (side.filename or "side.jpg", side_bytes),
+        (back.filename or "back.jpg", back_bytes),
+    ]
 
     try:
         result_bytes = await generate_try_on(
-            user_front_image=front_bytes,
-            user_front_filename=front_filename,
+            user_images=user_images,
             garment_paths=garment_paths,
             prompt=outfit.prompt,
         )

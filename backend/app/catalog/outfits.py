@@ -4,18 +4,35 @@ from pathlib import Path
 from app.config import ASSETS_DIR
 
 TRY_ON_PROMPT = """\
-Image 1: full-body front photo of the person.
-Image 2: Shein jeans reference photo.
-Image 3: Stussy jacket reference photo.
-Image 4: New Balance shoes reference photo.
+Image 1: full-body front reference photo of the person.
+Image 2: full-body side reference photo of the person.
+Image 3: full-body back reference photo of the person.
+Image 4: pants reference photo.
+Image 5: jacket reference photo.
+Image 6: shoes reference photo.
 
-Edit Image 1 to dress the person using the provided clothing images. \
-Fit the jeans, jacket, and shoes onto the person as a complete outfit. \
-Do not change their face, facial features, skin tone, body shape, pose, or identity in any way. \
-Preserve their exact likeness, expression, hairstyle, and proportions. \
-Replace only the clothing, fitting the garments naturally to their existing pose and body geometry with realistic fabric behavior. \
-Match lighting, shadows, and color temperature to the original photo so the outfit integrates photorealistically, without looking pasted on. \
-Do not change the background, camera angle, framing, or image quality, and do not add accessories, text, logos, or watermarks.\
+Create a single photorealistic studio fashion try-on composite image.
+
+Layout: three equal full-body panels arranged left to right on one canvas — \
+panel 1 = front view, panel 2 = side view, panel 3 = back view. \
+Plain white seamless studio background across all panels. \
+Soft, even studio lighting with natural shadows and correct perspective.
+
+For each panel, dress the same person in the complete outfit from the garment \
+reference images. Match each panel's body pose, stance, and camera angle to \
+the corresponding person reference (front panel → Image 1, side panel → Image 2, \
+back panel → Image 3).
+
+Preserve the same identity across all three panels: exact face, facial features, \
+skin tone, hair, body proportions, and height. Do not beautify the face, slim \
+or reshape the body, or change height.
+
+Garments: accurate structure, fit, fabric texture, color, seams, and proportions. \
+Realistic draping, folds, and occlusion. The outfit should look naturally worn, \
+not pasted on.
+
+Do not add text, logos, watermarks, borders between panels, or extra accessories. \
+Do not make the result look AI-generated, over-smoothed, or plastic.\
 """
 
 
