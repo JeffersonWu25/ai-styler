@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     database_ssl_verify: bool = False
     jwt_secret: str = "dev-only-change-me"
 
+    s3_endpoint: str = ""
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_bucket_name: str = ""
+    s3_region: str = "auto"
+
     @field_validator("database_url")
     @classmethod
     def require_database_url(cls, value: str) -> str:
