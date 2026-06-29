@@ -49,6 +49,49 @@ def generation_object_key(user_id: uuid.UUID, generation_id: uuid.UUID) -> str:
     return f"generations/{user_id}/{generation_id}.png"
 
 
+def user_photo_object_key(user_id: uuid.UUID, slot: str) -> str:
+    return f"user-photos/{user_id}/{slot}.jpg"
+
+
+def upload_user_photo(
+    user_id: uuid.UUID, slot: str, image_bytes: bytes, content_type: str = "image/jpeg"
+) -> str:
+    object_key = user_photo_object_key(user_id, slot)
+    try:
+        _s3_client().put_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+            Body=image_bytes,
+            ContentType=content_type,
+        )
+    except ClientError as exc:
+        error = exc.response.get("Error", {})
+        message = error.get("Message", "Upload failed.")
+        raise ObjectStorageError(f"Failed to upload user photo: {message}") from exc
+    return object_key
+
+
+def download_user_photo(object_key: str) -> bytes:
+    try:
+        response = _s3_client().get_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+        )
+        return response["Body"].read()
+    except ClientError as exc:
+        raise ObjectStorageError("Failed to download user photo.") from exc
+
+
+def delete_user_photo_object(object_key: str) -> None:
+    try:
+        _s3_client().delete_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+        )
+    except ClientError as exc:
+        raise ObjectStorageError("Failed to delete user photo.") from exc
+
+
 def upload_generation(
     user_id: uuid.UUID, generation_id: uuid.UUID, png_bytes: bytes
 ) -> str:

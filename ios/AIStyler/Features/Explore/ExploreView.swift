@@ -15,7 +15,12 @@ struct ExploreView: View {
                     TryOnResultView(
                         compositeImage: result.compositeImage,
                         outfitName: result.outfitName,
-                        onSave: {},
+                        isSaved: result.isSaved,
+                        isSaving: tryOnSession.isSaving,
+                        saveMessage: tryOnSession.saveMessage,
+                        onSave: {
+                            Task { await tryOnSession.saveCurrentGeneration() }
+                        },
                         onDismiss: { tryOnSession.dismissResult() }
                     )
                 case .failed(let message):

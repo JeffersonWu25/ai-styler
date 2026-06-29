@@ -26,6 +26,11 @@
 		B100000E000000000000000E /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000E000000000000000E /* LoginView.swift */; };
 		B100000F000000000000000F /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000F000000000000000F /* AuthService.swift */; };
 		B10000100000000000000010 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000100000000000000010 /* KeychainHelper.swift */; };
+		B10000110000000000000011 /* CollectionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000110000000000000011 /* CollectionsStore.swift */; };
+		B10000120000000000000012 /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000120000000000000012 /* CollectionsView.swift */; };
+		B10000130000000000000013 /* SavedLookCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000130000000000000013 /* SavedLookCard.swift */; };
+		B10000140000000000000014 /* SavedLookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000140000000000000014 /* SavedLookDetailView.swift */; };
+		B10000150000000000000015 /* UserPhotosStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000150000000000000015 /* UserPhotosStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +54,11 @@
 		B200000E000000000000000E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		B200000F000000000000000F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		B20000100000000000000010 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
+		B20000110000000000000011 /* CollectionsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsStore.swift; sourceTree = "<group>"; };
+		B20000120000000000000012 /* CollectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
+		B20000130000000000000013 /* SavedLookCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLookCard.swift; sourceTree = "<group>"; };
+		B20000140000000000000014 /* SavedLookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLookDetailView.swift; sourceTree = "<group>"; };
+		B20000150000000000000015 /* UserPhotosStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserPhotosStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +116,7 @@
 				A500000D000000000000000D /* Auth */,
 				A500000B000000000000000B /* Home */,
 				A500000C000000000000000C /* Explore */,
+				A500000E000000000000000E /* Collections */,
 				A50000090000000000000009 /* PhotoCapture */,
 				A500000A000000000000000A /* TryOn */,
 			);
@@ -132,6 +143,8 @@
 				B20000010000000000000001 /* PhotoSlot.swift */,
 				B20000020000000000000002 /* UserPhotos.swift */,
 				B200000D000000000000000D /* TryOnSession.swift */,
+				B20000110000000000000011 /* CollectionsStore.swift */,
+				B20000150000000000000015 /* UserPhotosStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -174,6 +187,16 @@
 				B200000C000000000000000C /* ExploreView.swift */,
 			);
 			path = Explore;
+			sourceTree = "<group>";
+		};
+		A500000E000000000000000E /* Collections */ = {
+			isa = PBXGroup;
+			children = (
+				B20000120000000000000012 /* CollectionsView.swift */,
+				B20000130000000000000013 /* SavedLookCard.swift */,
+				B20000140000000000000014 /* SavedLookDetailView.swift */,
+			);
+			path = Collections;
 			sourceTree = "<group>";
 		};
 		A500000D000000000000000D /* Auth */ = {
@@ -271,6 +294,11 @@
 				B100000E000000000000000E /* LoginView.swift in Sources */,
 				B100000F000000000000000F /* AuthService.swift in Sources */,
 				B10000100000000000000010 /* KeychainHelper.swift in Sources */,
+				B10000110000000000000011 /* CollectionsStore.swift in Sources */,
+				B10000120000000000000012 /* CollectionsView.swift in Sources */,
+				B10000130000000000000013 /* SavedLookCard.swift in Sources */,
+				B10000140000000000000014 /* SavedLookDetailView.swift in Sources */,
+				B10000150000000000000015 /* UserPhotosStore.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

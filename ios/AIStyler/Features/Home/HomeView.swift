@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct HomeView: View {
-    @Bindable var userPhotos: UserPhotos
+    @Bindable var userPhotosStore: UserPhotosStore
     @Bindable var tryOnSession: TryOnSession
     @Bindable var authService: AuthService
+
+    private var userPhotos: UserPhotos { userPhotosStore.userPhotos }
 
     @State private var showOnboarding = false
     @State private var backendConnected: Bool?
@@ -21,9 +23,29 @@ struct HomeView: View {
                             slot: slot,
                             image: userPhotos.image(for: slot),
                             validationError: userPhotos.validationError(for: slot),
-                            onImageSelected: { userPhotos.setImage($0, for: slot) },
-                            onClear: { userPhotos.clear(slot: slot) }
+                            onImageSelected: { image in
+                                Task { await userPhotosStore.setImage(image, for: slot) }
+                            },
+                            onClear: {
+                                Task { await userPhotosStore.clear(slot: slot) }
+                            }
                         )
+                    }
+
+                    if let syncError = userPhotosStore.syncError {
+                        Text(syncError)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    if userPhotosStore.isLoading {
+                        HStack {
+                            ProgressView()
+                            Text("Loading your photos…")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
 
                     generateSection
@@ -149,9 +171,10 @@ struct HomeView: View {
 }
 
 #Preview {
+    let authService = AuthService()
     HomeView(
-        userPhotos: UserPhotos(),
-        tryOnSession: TryOnSession(authService: AuthService()),
-        authService: AuthService()
+        userPhotosStore: UserPhotosStore(authService: authService),
+        tryOnSession: TryOnSession(authService: authService),
+        authService: authService
     )
 }

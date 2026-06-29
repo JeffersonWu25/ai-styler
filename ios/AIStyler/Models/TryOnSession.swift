@@ -2,13 +2,16 @@ import Observation
 import UIKit
 
 struct TryOnResult {
+    let generationId: String
     let compositeImage: UIImage
     let outfitName: String
+    var isSaved: Bool
 }
 
 enum AppTab: Hashable {
     case home
     case explore
+    case collections
 }
 
 enum TryOnDisplayState {
@@ -23,6 +26,8 @@ enum TryOnDisplayState {
 final class TryOnSession {
     var selectedTab: AppTab = .home
     private(set) var displayState: TryOnDisplayState = .empty
+    private(set) var isSaving = false
+    var saveMessage: String?
 
     private let authService: AuthService
 
@@ -36,9 +41,7 @@ final class TryOnSession {
     }
 
     func generate(from userPhotos: UserPhotos) async {
-        guard let front = userPhotos.jpegData(for: .front),
-              let side = userPhotos.jpegData(for: .side),
-              let back = userPhotos.jpegData(for: .back) else {
+        guard userPhotos.isComplete else {
             displayState = .failed("Missing one or more photos.")
             selectedTab = .explore
             return
@@ -46,20 +49,22 @@ final class TryOnSession {
 
         displayState = .loading
         selectedTab = .explore
+        saveMessage = nil
 
         do {
-            let response = try await authService.apiClient.tryOn(
-                front: front,
-                side: side,
-                back: back
-            )
+            let response = try await authService.apiClient.tryOn()
             guard let data = Data(base64Encoded: response.imageBase64),
                   let image = UIImage(data: data) else {
                 displayState = .failed("Could not decode the generated image.")
                 return
             }
             displayState = .ready(
-                TryOnResult(compositeImage: image, outfitName: response.outfitName)
+                TryOnResult(
+                    generationId: response.generationId,
+                    compositeImage: image,
+                    outfitName: response.outfitName,
+                    isSaved: false
+                )
             )
         } catch TryOnAPIError.unauthorized {
             authService.signOut()
@@ -69,7 +74,54 @@ final class TryOnSession {
         }
     }
 
+    func restoreLatestGenerationIfNeeded() async {
+        guard case .empty = displayState else { return }
+
+        do {
+            let generations = try await authService.apiClient.fetchGenerations()
+            guard let latest = generations.first else { return }
+
+            let data = try await authService.apiClient.fetchGenerationImage(id: latest.id)
+            guard let image = UIImage(data: data) else { return }
+
+            displayState = .ready(
+                TryOnResult(
+                    generationId: latest.id,
+                    compositeImage: image,
+                    outfitName: latest.outfitName,
+                    isSaved: latest.isSaved
+                )
+            )
+        } catch TryOnAPIError.unauthorized {
+            authService.signOut()
+        } catch {
+            return
+        }
+    }
+
+    func saveCurrentGeneration() async {
+        guard case .ready(var result) = displayState else { return }
+        guard !result.isSaved else { return }
+
+        isSaving = true
+        saveMessage = nil
+        defer { isSaving = false }
+
+        do {
+            _ = try await authService.apiClient.saveGeneration(id: result.generationId)
+            result.isSaved = true
+            displayState = .ready(result)
+            saveMessage = "Saved to Collections."
+        } catch TryOnAPIError.unauthorized {
+            authService.signOut()
+            saveMessage = "Your session expired. Please sign in again."
+        } catch {
+            saveMessage = error.localizedDescription
+        }
+    }
+
     func dismissResult() {
         displayState = .empty
+        saveMessage = nil
     }
 }

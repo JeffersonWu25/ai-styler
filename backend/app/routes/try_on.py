@@ -14,24 +14,29 @@ from app.models.user import User
 from app.schemas.generation import TryOnResponse
 from app.services.object_storage import ObjectStorageError, upload_generation
 from app.services.openai_image import OpenAIImageError, generate_try_on
+from app.services.user_photos import UserPhotoError, load_user_photo_bytes, upsert_user_photo
 
 router = APIRouter(prefix="/try-on", tags=["try-on"])
 
 MAX_IMAGE_BYTES = 15 * 1024 * 1024
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "application/octet-stream"}
+SLOT_FILENAMES = {"front": "front.jpg", "side": "side.jpg", "back": "back.jpg"}
 
 
 @router.post("", response_model=TryOnResponse)
 async def try_on(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    front: UploadFile = File(...),
-    side: UploadFile = File(...),
-    back: UploadFile = File(...),
+    front: UploadFile | None = File(None),
+    side: UploadFile | None = File(None),
+    back: UploadFile | None = File(None),
 ) -> TryOnResponse:
-    front_bytes = await _read_image(front, "front")
-    side_bytes = await _read_image(side, "side")
-    back_bytes = await _read_image(back, "back")
+    uploads = {"front": front, "side": side, "back": back}
+    user_images: list[tuple[str, bytes]] = []
+
+    for slot, upload in uploads.items():
+        image_bytes = await _resolve_slot_image(db, current_user.id, slot, upload)
+        user_images.append((SLOT_FILENAMES[slot], image_bytes))
 
     try:
         outfit = get_outfit(settings.default_outfit_id)
@@ -40,12 +45,6 @@ async def try_on(
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except KeyError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
-
-    user_images = [
-        (front.filename or "front.jpg", front_bytes),
-        (side.filename or "side.jpg", side_bytes),
-        (back.filename or "back.jpg", back_bytes),
-    ]
 
     try:
         result_bytes = await generate_try_on(
@@ -79,6 +78,44 @@ async def try_on(
         image_base64=base64.b64encode(result_bytes).decode("ascii"),
         outfit_name=outfit.name,
     )
+
+
+async def _resolve_slot_image(
+    db: AsyncSession,
+    user_id: uuid.UUID,
+    slot: str,
+    upload: UploadFile | None,
+) -> bytes:
+    if upload is not None and await _upload_has_content(upload):
+        image_bytes = await _read_image(upload, slot)
+        content_type = upload.content_type or "image/jpeg"
+        try:
+            await upsert_user_photo(db, user_id, slot, image_bytes, content_type)
+        except UserPhotoError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        return image_bytes
+
+    try:
+        stored = await load_user_photo_bytes(db, user_id, slot)
+    except UserPhotoError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    if stored is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Missing {slot} photo. Upload it on Home or include it in the request.",
+        )
+    return stored
+
+
+async def _upload_has_content(upload: UploadFile) -> bool:
+    if not upload.filename:
+        return False
+    peek = await upload.read(1)
+    if not peek:
+        return False
+    await upload.seek(0)
+    return True
 
 
 async def _read_image(upload: UploadFile, field_name: str) -> bytes:

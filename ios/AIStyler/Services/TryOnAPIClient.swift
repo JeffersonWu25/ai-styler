@@ -5,8 +5,26 @@ struct HealthResponse: Decodable {
 }
 
 struct TryOnResponse: Decodable {
+    let generationId: String
     let imageBase64: String
     let outfitName: String
+}
+
+struct GenerationResponse: Decodable, Hashable, Identifiable {
+    let id: String
+    let outfitName: String
+    let isSaved: Bool
+    let createdAt: Date
+}
+
+struct UserPhotoResponse: Decodable {
+    let slot: String
+    let updatedAt: Date
+}
+
+struct MeAssetsResponse: Decodable {
+    let userPhotos: [UserPhotoResponse]
+    let generations: [GenerationResponse]
 }
 
 enum TryOnAPIError: LocalizedError {
@@ -101,38 +119,53 @@ final class TryOnAPIClient {
         return try await send(request, decode: AuthUser.self)
     }
 
-    func tryOn(front: Data, side: Data, back: Data) async throws -> TryOnResponse {
+    func tryOn() async throws -> TryOnResponse {
+        var request = URLRequest(url: baseURL.appending(path: "try-on"))
+        request.httpMethod = "POST"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: TryOnResponse.self)
+    }
+
+    func fetchMeAssets() async throws -> MeAssetsResponse {
+        let url = baseURL.appending(path: "me/assets")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: MeAssetsResponse.self)
+    }
+
+    func fetchUserPhotos() async throws -> [UserPhotoResponse] {
+        let url = baseURL.appending(path: "user-photos")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        struct ListResponse: Decodable {
+            let photos: [UserPhotoResponse]
+        }
+
+        let response = try await send(request, decode: ListResponse.self)
+        return response.photos
+    }
+
+    func uploadUserPhoto(slot: String, jpegData: Data) async throws -> UserPhotoResponse {
         let boundary = "Boundary-\(UUID().uuidString)"
         var body = Data()
 
         appendFile(
             to: &body,
             boundary: boundary,
-            fieldName: "front",
-            filename: "front.jpg",
+            fieldName: "image",
+            filename: "\(slot).jpg",
             mimeType: "image/jpeg",
-            data: front
-        )
-        appendFile(
-            to: &body,
-            boundary: boundary,
-            fieldName: "side",
-            filename: "side.jpg",
-            mimeType: "image/jpeg",
-            data: side
-        )
-        appendFile(
-            to: &body,
-            boundary: boundary,
-            fieldName: "back",
-            filename: "back.jpg",
-            mimeType: "image/jpeg",
-            data: back
+            data: jpegData
         )
         body.append("--\(boundary)--\r\n".data(using: .utf8)!)
 
-        var request = URLRequest(url: baseURL.appending(path: "try-on"))
-        request.httpMethod = "POST"
+        var request = URLRequest(url: baseURL.appending(path: "user-photos/\(slot)"))
+        request.httpMethod = "PUT"
         request.setValue(
             "multipart/form-data; boundary=\(boundary)",
             forHTTPHeaderField: "Content-Type"
@@ -140,7 +173,118 @@ final class TryOnAPIClient {
         request.httpBody = body
         applyAuthHeader(to: &request)
 
-        return try await send(request, decode: TryOnResponse.self)
+        return try await send(request, decode: UserPhotoResponse.self)
+    }
+
+    func fetchUserPhotoImage(slot: String) async throws -> Data {
+        let url = baseURL.appending(path: "user-photos/\(slot)/image")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await fetchImageData(request)
+    }
+
+    func deleteUserPhoto(slot: String) async throws {
+        let url = baseURL.appending(path: "user-photos/\(slot)")
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        applyAuthHeader(to: &request)
+
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw TryOnAPIError.serverUnavailable
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw TryOnAPIError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 401 {
+            throw TryOnAPIError.unauthorized
+        }
+
+        if httpResponse.statusCode == 204 {
+            return
+        }
+
+        if let message = Self.parseAPIErrorMessage(from: data) {
+            throw TryOnAPIError.apiError(message)
+        }
+        throw TryOnAPIError.apiError("Request failed with status \(httpResponse.statusCode).")
+    }
+
+    func fetchGenerations() async throws -> [GenerationResponse] {
+        let url = baseURL.appending(path: "generations")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: [GenerationResponse].self)
+    }
+
+    func saveGeneration(id: String) async throws -> GenerationResponse {
+        let url = baseURL.appending(path: "generations/\(id)/save")
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: GenerationResponse.self)
+    }
+
+    func fetchSavedGenerations() async throws -> [GenerationResponse] {
+        var components = URLComponents(
+            url: baseURL.appending(path: "generations"),
+            resolvingAgainstBaseURL: false
+        )!
+        components.queryItems = [URLQueryItem(name: "saved", value: "true")]
+
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: [GenerationResponse].self)
+    }
+
+    func fetchGenerationImage(id: String) async throws -> Data {
+        let url = baseURL.appending(path: "generations/\(id)/image")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await fetchImageData(request)
+    }
+
+    private func fetchImageData(_ request: URLRequest) async throws -> Data {
+        let data: Data
+        let response: URLResponse
+
+        do {
+            (data, response) = try await session.data(for: request)
+        } catch {
+            throw TryOnAPIError.serverUnavailable
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw TryOnAPIError.invalidResponse
+        }
+
+        if httpResponse.statusCode == 401 {
+            throw TryOnAPIError.unauthorized
+        }
+
+        if !(200...299).contains(httpResponse.statusCode) {
+            if let message = Self.parseAPIErrorMessage(from: data) {
+                throw TryOnAPIError.apiError(message)
+            }
+            throw TryOnAPIError.apiError("Request failed with status \(httpResponse.statusCode).")
+        }
+
+        return data
     }
 
     private func send<T: Decodable>(_ request: URLRequest, decode type: T.Type) async throws -> T {

@@ -3,6 +3,9 @@ import SwiftUI
 struct TryOnResultView: View {
     let compositeImage: UIImage
     let outfitName: String
+    let isSaved: Bool
+    let isSaving: Bool
+    let saveMessage: String?
     let onSave: () -> Void
     let onDismiss: () -> Void
 
@@ -62,15 +65,26 @@ struct TryOnResultView: View {
     private var actionFooter: some View {
         VStack(spacing: 12) {
             Button(action: onSave) {
-                Label("Save", systemImage: "bookmark")
-                    .frame(maxWidth: .infinity)
+                Group {
+                    if isSaving {
+                        ProgressView()
+                    } else if isSaved {
+                        Label("Saved", systemImage: "bookmark.fill")
+                    } else {
+                        Label("Save", systemImage: "bookmark")
+                    }
+                }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(true)
+            .disabled(isSaving || isSaved)
 
-            Text("Save coming in the next update.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            if let saveMessage {
+                Text(saveMessage)
+                    .font(.caption)
+                    .foregroundStyle(isSaved ? Color.secondary : Color.red)
+                    .multilineTextAlignment(.center)
+            }
 
             Button(action: onDismiss) {
                 Label("Close", systemImage: "xmark")
@@ -86,6 +100,9 @@ struct TryOnResultView: View {
     TryOnResultView(
         compositeImage: UIImage(systemName: "person.fill")!,
         outfitName: "Streetwear",
+        isSaved: false,
+        isSaving: false,
+        saveMessage: nil,
         onSave: {},
         onDismiss: {}
     )
