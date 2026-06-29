@@ -19,18 +19,22 @@ enum TryOnDisplayState {
 }
 
 @Observable
+@MainActor
 final class TryOnSession {
     var selectedTab: AppTab = .home
     private(set) var displayState: TryOnDisplayState = .empty
 
-    private let apiClient = TryOnAPIClient()
+    private let authService: AuthService
+
+    init(authService: AuthService) {
+        self.authService = authService
+    }
 
     var isGenerating: Bool {
         if case .loading = displayState { return true }
         return false
     }
 
-    @MainActor
     func generate(from userPhotos: UserPhotos) async {
         guard let front = userPhotos.jpegData(for: .front),
               let side = userPhotos.jpegData(for: .side),
@@ -44,7 +48,11 @@ final class TryOnSession {
         selectedTab = .explore
 
         do {
-            let response = try await apiClient.tryOn(front: front, side: side, back: back)
+            let response = try await authService.apiClient.tryOn(
+                front: front,
+                side: side,
+                back: back
+            )
             guard let data = Data(base64Encoded: response.imageBase64),
                   let image = UIImage(data: data) else {
                 displayState = .failed("Could not decode the generated image.")
@@ -53,12 +61,14 @@ final class TryOnSession {
             displayState = .ready(
                 TryOnResult(compositeImage: image, outfitName: response.outfitName)
             )
+        } catch TryOnAPIError.unauthorized {
+            authService.signOut()
+            displayState = .failed("Your session expired. Please sign in again.")
         } catch {
             displayState = .failed(error.localizedDescription)
         }
     }
 
-    @MainActor
     func dismissResult() {
         displayState = .empty
     }

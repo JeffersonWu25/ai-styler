@@ -3,13 +3,12 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var userPhotos: UserPhotos
     @Bindable var tryOnSession: TryOnSession
+    @Bindable var authService: AuthService
 
     @State private var showOnboarding = false
     @State private var backendConnected: Bool?
     @State private var isCheckingBackend = false
     @State private var backendError: String?
-
-    private let apiClient = TryOnAPIClient()
 
     var body: some View {
         NavigationStack {
@@ -33,6 +32,11 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button("Sign Out") {
+                        authService.signOut()
+                    }
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Tips") { showOnboarding = true }
                 }
@@ -136,7 +140,7 @@ struct HomeView: View {
         defer { isCheckingBackend = false }
 
         do {
-            backendConnected = try await apiClient.checkHealth()
+            backendConnected = try await authService.apiClient.checkHealth()
         } catch {
             backendConnected = false
             backendError = error.localizedDescription
@@ -145,5 +149,9 @@ struct HomeView: View {
 }
 
 #Preview {
-    HomeView(userPhotos: UserPhotos(), tryOnSession: TryOnSession())
+    HomeView(
+        userPhotos: UserPhotos(),
+        tryOnSession: TryOnSession(authService: AuthService()),
+        authService: AuthService()
+    )
 }

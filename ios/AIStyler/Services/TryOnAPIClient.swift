@@ -12,6 +12,7 @@ struct TryOnResponse: Decodable {
 enum TryOnAPIError: LocalizedError {
     case invalidResponse
     case serverUnavailable
+    case unauthorized
     case apiError(String)
 
     var errorDescription: String? {
@@ -20,18 +21,25 @@ enum TryOnAPIError: LocalizedError {
             "Unexpected response from the server."
         case .serverUnavailable:
             "Could not reach the backend. Make sure it is running on \(AppConfig.apiBaseURL.absoluteString)."
+        case .unauthorized:
+            "Your session expired. Please sign in again."
         case .apiError(let message):
             message
         }
     }
 }
 
-struct TryOnAPIClient {
+final class TryOnAPIClient {
+    var accessToken: String?
+
     private let session: URLSession
     private let baseURL: URL
+    private let jsonDecoder: JSONDecoder
 
     init(baseURL: URL = AppConfig.apiBaseURL, session: URLSession? = nil) {
         self.baseURL = baseURL
+        self.jsonDecoder = JSONDecoder()
+        self.jsonDecoder.dateDecodingStrategy = .iso8601
 
         if let session {
             self.session = session
@@ -62,6 +70,35 @@ struct TryOnAPIClient {
 
         let decoded = try JSONDecoder().decode(HealthResponse.self, from: data)
         return decoded.status == "ok"
+    }
+
+    func signUp(email: String, password: String) async throws -> AuthTokenResponse {
+        let url = baseURL.appending(path: "auth/signup")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
+
+        return try await send(request, decode: AuthTokenResponse.self)
+    }
+
+    func logIn(email: String, password: String) async throws -> AuthTokenResponse {
+        let url = baseURL.appending(path: "auth/login")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
+
+        return try await send(request, decode: AuthTokenResponse.self)
+    }
+
+    func fetchCurrentUser() async throws -> AuthUser {
+        let url = baseURL.appending(path: "auth/me")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        applyAuthHeader(to: &request)
+
+        return try await send(request, decode: AuthUser.self)
     }
 
     func tryOn(front: Data, side: Data, back: Data) async throws -> TryOnResponse {
@@ -101,7 +138,12 @@ struct TryOnAPIClient {
             forHTTPHeaderField: "Content-Type"
         )
         request.httpBody = body
+        applyAuthHeader(to: &request)
 
+        return try await send(request, decode: TryOnResponse.self)
+    }
+
+    private func send<T: Decodable>(_ request: URLRequest, decode type: T.Type) async throws -> T {
         let data: Data
         let response: URLResponse
 
@@ -115,18 +157,27 @@ struct TryOnAPIClient {
             throw TryOnAPIError.invalidResponse
         }
 
+        if httpResponse.statusCode == 401 {
+            throw TryOnAPIError.unauthorized
+        }
+
         if !(200...299).contains(httpResponse.statusCode) {
             if let message = Self.parseAPIErrorMessage(from: data) {
                 throw TryOnAPIError.apiError(message)
             }
-            throw TryOnAPIError.apiError("Try-on failed with status \(httpResponse.statusCode).")
+            throw TryOnAPIError.apiError("Request failed with status \(httpResponse.statusCode).")
         }
 
         do {
-            return try JSONDecoder().decode(TryOnResponse.self, from: data)
+            return try jsonDecoder.decode(T.self, from: data)
         } catch {
             throw TryOnAPIError.invalidResponse
         }
+    }
+
+    private func applyAuthHeader(to request: inout URLRequest) {
+        guard let accessToken else { return }
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
     }
 
     private static func parseAPIErrorMessage(from data: Data) -> String? {

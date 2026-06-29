@@ -19,10 +19,13 @@
 		B10000070000000000000007 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000070000000000000007 /* OnboardingView.swift */; };
 		B10000080000000000000008 /* PhotoSlotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000080000000000000008 /* PhotoSlotCard.swift */; };
 		B10000090000000000000009 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000090000000000000009 /* HomeView.swift */; };
-		B100000C000000000000000C /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000C000000000000000C /* ExploreView.swift */; };
-		B100000D000000000000000D /* TryOnSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000D000000000000000D /* TryOnSession.swift */; };
 		B100000A000000000000000A /* TryOnResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000A000000000000000A /* TryOnResultView.swift */; };
 		B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000B000000000000000B /* TryOnCompositeImage.swift */; };
+		B100000C000000000000000C /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000C000000000000000C /* ExploreView.swift */; };
+		B100000D000000000000000D /* TryOnSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000D000000000000000D /* TryOnSession.swift */; };
+		B100000E000000000000000E /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000E000000000000000E /* LoginView.swift */; };
+		B100000F000000000000000F /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000F000000000000000F /* AuthService.swift */; };
+		B10000100000000000000010 /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000100000000000000010 /* KeychainHelper.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,10 +42,13 @@
 		B20000070000000000000007 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B20000080000000000000008 /* PhotoSlotCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSlotCard.swift; sourceTree = "<group>"; };
 		B20000090000000000000009 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		B200000C000000000000000C /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
-		B200000D000000000000000D /* TryOnSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnSession.swift; sourceTree = "<group>"; };
 		B200000A000000000000000A /* TryOnResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnResultView.swift; sourceTree = "<group>"; };
 		B200000B000000000000000B /* TryOnCompositeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnCompositeImage.swift; sourceTree = "<group>"; };
+		B200000C000000000000000C /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		B200000D000000000000000D /* TryOnSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnSession.swift; sourceTree = "<group>"; };
+		B200000E000000000000000E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		B200000F000000000000000F /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+		B20000100000000000000010 /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				A50000080000000000000008 /* Onboarding */,
+				A500000D000000000000000D /* Auth */,
 				A500000B000000000000000B /* Home */,
 				A500000C000000000000000C /* Explore */,
 				A50000090000000000000009 /* PhotoCapture */,
@@ -112,6 +119,8 @@
 				B20000040000000000000004 /* ImageCompressor.swift */,
 				B20000050000000000000005 /* PhotoValidator.swift */,
 				B20000060000000000000006 /* TryOnAPIClient.swift */,
+				B200000F000000000000000F /* AuthService.swift */,
+				B20000100000000000000010 /* KeychainHelper.swift */,
 				B200000B000000000000000B /* TryOnCompositeImage.swift */,
 			);
 			path = Services;
@@ -143,6 +152,14 @@
 			path = PhotoCapture;
 			sourceTree = "<group>";
 		};
+		A500000A000000000000000A /* TryOn */ = {
+			isa = PBXGroup;
+			children = (
+				B200000A000000000000000A /* TryOnResultView.swift */,
+			);
+			path = TryOn;
+			sourceTree = "<group>";
+		};
 		A500000B000000000000000B /* Home */ = {
 			isa = PBXGroup;
 			children = (
@@ -159,12 +176,12 @@
 			path = Explore;
 			sourceTree = "<group>";
 		};
-		A500000A000000000000000A /* TryOn */ = {
+		A500000D000000000000000D /* Auth */ = {
 			isa = PBXGroup;
 			children = (
-				B200000A000000000000000A /* TryOnResultView.swift */,
+				B200000E000000000000000E /* LoginView.swift */,
 			);
-			path = TryOn;
+			path = Auth;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -251,6 +268,9 @@
 				B100000D000000000000000D /* TryOnSession.swift in Sources */,
 				B100000A000000000000000A /* TryOnResultView.swift in Sources */,
 				B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */,
+				B100000E000000000000000E /* LoginView.swift in Sources */,
+				B100000F000000000000000F /* AuthService.swift in Sources */,
+				B10000100000000000000010 /* KeychainHelper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,7 +385,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = Z53775RWZZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
@@ -393,7 +413,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = Z53775RWZZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;

@@ -26,9 +26,23 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp ../.env.example .env
-# Edit .env and set OPENAI_API_KEY
+# Edit .env: OPENAI_API_KEY and DATABASE_URL (Railway Postgres public URL)
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+### Database (Railway Postgres, local backend)
+
+Local development runs **uvicorn on your Mac** but stores data in **Railway Postgres**:
+
+1. In [Railway](https://railway.app), create a project and add **PostgreSQL**.
+2. Open the Postgres service → **Connect** → copy the **public** `DATABASE_URL` (not `.railway.internal`).
+3. Paste it into `backend/.env`:
+   ```
+   DATABASE_URL=postgresql://postgres:...@...railway.app:5432/railway
+   ```
+   The backend converts `postgres://` → `postgresql+asyncpg://` and enables SSL automatically.
+
+Tables are created on first startup. Use a separate Railway Postgres for production when you deploy the API.
 
 Verify the server is running:
 
@@ -62,6 +76,10 @@ cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 
 > **Physical device:** change `AppConfig.apiBaseURL` in `ios/AIStyler/Services/AppConfig.swift` to your Mac's LAN IP (e.g. `http://192.168.1.10:8000`).
 
 > **Note:** Set your Development Team in Xcode (Signing & Capabilities) before running on a physical device.
+
+Sign in with any email and password (8+ characters to sign up). No OAuth or Apple Developer Program setup required.
+
+If the `users` table already exists from earlier OAuth work, drop and recreate it on Railway Postgres before testing signup.
 
 ## Development phases
 

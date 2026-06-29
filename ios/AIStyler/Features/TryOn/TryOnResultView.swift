@@ -68,7 +68,7 @@ struct TryOnResultView: View {
             .buttonStyle(.borderedProminent)
             .disabled(true)
 
-            Text("Sign in to save — coming in a future update.")
+            Text("Save coming in the next update.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

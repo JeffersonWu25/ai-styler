@@ -1,9 +1,12 @@
 import base64
+from typing import Annotated
 
-from fastapi import APIRouter, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from app.catalog.outfits import get_outfit
 from app.config import settings
+from app.deps.auth import get_current_user
+from app.models.user import User
 from app.services.openai_image import OpenAIImageError, generate_try_on
 
 router = APIRouter(prefix="/try-on", tags=["try-on"])
@@ -14,10 +17,12 @@ ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp", "application/o
 
 @router.post("")
 async def try_on(
+    current_user: Annotated[User, Depends(get_current_user)],
     front: UploadFile = File(...),
     side: UploadFile = File(...),
     back: UploadFile = File(...),
 ) -> dict[str, str]:
+    _ = current_user
     front_bytes = await _read_image(front, "front")
     side_bytes = await _read_image(side, "side")
     back_bytes = await _read_image(back, "back")

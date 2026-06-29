@@ -1,8 +1,20 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
-from app.routes import health, try_on
+from app.db.session import init_db
+from app.models import user as _user  # noqa: F401
+from app.routes import auth, health, try_on
 
-app = FastAPI(title="AI Styler API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+
+
+app = FastAPI(title="AI Styler API", version="0.2.0", lifespan=lifespan)
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(try_on.router)
