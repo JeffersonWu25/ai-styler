@@ -125,3 +125,46 @@ def download_generation(object_key: str) -> bytes:
         return response["Body"].read()
     except ClientError as exc:
         raise ObjectStorageError("Failed to download generation image.") from exc
+
+
+def listing_object_key(listing_id: uuid.UUID) -> str:
+    return f"listings/{listing_id}/main.jpg"
+
+
+def upload_listing_image(
+    listing_id: uuid.UUID, image_bytes: bytes, content_type: str = "image/jpeg"
+) -> str:
+    object_key = listing_object_key(listing_id)
+    try:
+        _s3_client().put_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+            Body=image_bytes,
+            ContentType=content_type,
+        )
+    except ClientError as exc:
+        error = exc.response.get("Error", {})
+        message = error.get("Message", "Upload failed.")
+        raise ObjectStorageError(f"Failed to upload listing image: {message}") from exc
+    return object_key
+
+
+def download_listing_image(object_key: str) -> bytes:
+    try:
+        response = _s3_client().get_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+        )
+        return response["Body"].read()
+    except ClientError as exc:
+        raise ObjectStorageError("Failed to download listing image.") from exc
+
+
+def delete_listing_image(object_key: str) -> None:
+    try:
+        _s3_client().delete_object(
+            Bucket=settings.s3_bucket_name,
+            Key=object_key,
+        )
+    except ClientError as exc:
+        raise ObjectStorageError("Failed to delete listing image.") from exc

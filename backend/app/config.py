@@ -55,6 +55,8 @@ class Settings(BaseSettings):
     s3_bucket_name: str = ""
     s3_region: str = "auto"
 
+    admin_api_key: str = ""
+
     @field_validator("database_url")
     @classmethod
     def require_database_url(cls, value: str) -> str:

@@ -17,6 +17,10 @@ ios/**/xcuserdata/
 # Environment
 .env
 
+# Admin frontend
+admin/node_modules/
+admin/dist/
+
 # macOS
 .DS_Store
 

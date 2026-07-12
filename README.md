@@ -7,7 +7,8 @@ Virtual try-on iOS app backed by a Python API and OpenAI GPT Image 2.
 ```
 ai-styler/
 ├── ios/          SwiftUI iPhone app
-├── backend/      FastAPI server (OpenAI proxy)
+├── backend/      FastAPI server (OpenAI proxy + admin listings API)
+├── admin/        Vite React admin UI for clothing listings
 ├── CLAUDE.md     High-level product summary
 └── PLAN.md       MVP implementation plan
 ```
@@ -52,6 +53,29 @@ curl http://localhost:8000/health
 ```
 
 API docs: http://localhost:8000/docs
+
+### Admin listing catalog
+
+Manually add clothing listings (title, brand, URL, price, category, image). Stored in Postgres; images in S3.
+
+1. Set `ADMIN_API_KEY` in `backend/.env`.
+2. Start the backend (`uvicorn` as above).
+3. Run the admin UI:
+
+```bash
+cd admin
+npm install
+npm run dev
+```
+
+Open http://localhost:5173/admin/ and paste your admin key in the header.
+
+To serve the admin UI from FastAPI in production:
+
+```bash
+cd admin && npm run build
+# then start uvicorn — UI is at http://localhost:8000/admin/
+```
 
 ### Try-on endpoint
 
