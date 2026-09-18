@@ -229,8 +229,58 @@
 
 .form-preview {
   max-width: 220px;
+  max-height: 280px;
   border-radius: 10px;
-  border: 1px solid #e4dfd7;
+  object-fit: contain;
+}
+
+.image-field {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.image-label {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.paste-zone {
+  display: grid;
+  place-items: center;
+  min-height: 180px;
+  padding: 1rem;
+  border: 1.5px dashed #bbb;
+  border-radius: 12px;
+  background: #fafafa;
+  color: #666;
+  text-align: center;
+  cursor: pointer;
+  outline: none;
+}
+
+.paste-zone:hover,
+.paste-zone:focus {
+  border-color: #888;
+  background: #fff;
+}
+
+.paste-zone.has-image {
+  border-style: solid;
+  border-color: #e4dfd7;
+  background: #fff;
+}
+
+.file-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.image-filename {
+  font-size: 0.85rem;
 }
 
 @media (max-width: 720px) {
