@@ -1,15 +1,10 @@
-from pathlib import Path
-
 from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi.staticfiles import StaticFiles
 
-from app.routes import auth, generations, health, me, try_on, user_photos
+from app.routes import generations, health, me, try_on, user_photos
 
 app = FastAPI(title="AI Styler API", version="0.3.0")
 
 app.include_router(health.router)
-app.include_router(auth.router)
 app.include_router(me.router)
 app.include_router(user_photos.router)
 app.include_router(generations.router)

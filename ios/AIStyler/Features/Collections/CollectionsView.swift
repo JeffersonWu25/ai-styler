@@ -108,7 +108,7 @@ private struct SavedLookRow: View {
 
 #Preview {
     CollectionsView(
-        store: CollectionsStore(authService: AuthService()),
-        tryOnSession: TryOnSession(authService: AuthService())
+        store: CollectionsStore(apiClient: TryOnAPIClient()),
+        tryOnSession: TryOnSession(apiClient: TryOnAPIClient())
     )
 }

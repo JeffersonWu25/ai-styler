@@ -30,7 +30,6 @@ struct MeAssetsResponse: Decodable {
 enum TryOnAPIError: LocalizedError {
     case invalidResponse
     case serverUnavailable
-    case unauthorized
     case apiError(String)
 
     var errorDescription: String? {
@@ -39,8 +38,6 @@ enum TryOnAPIError: LocalizedError {
             "Unexpected response from the server."
         case .serverUnavailable:
             "Could not reach the backend. Make sure it is running on \(AppConfig.apiBaseURL.absoluteString)."
-        case .unauthorized:
-            "Your session expired. Please sign in again."
         case .apiError(let message):
             message
         }
@@ -90,39 +87,9 @@ final class TryOnAPIClient {
         return decoded.status == "ok"
     }
 
-    func signUp(email: String, password: String) async throws -> AuthTokenResponse {
-        let url = baseURL.appending(path: "auth/signup")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
-
-        return try await send(request, decode: AuthTokenResponse.self)
-    }
-
-    func logIn(email: String, password: String) async throws -> AuthTokenResponse {
-        let url = baseURL.appending(path: "auth/login")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
-
-        return try await send(request, decode: AuthTokenResponse.self)
-    }
-
-    func fetchCurrentUser() async throws -> AuthUser {
-        let url = baseURL.appending(path: "auth/me")
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
-
-        return try await send(request, decode: AuthUser.self)
-    }
-
     func tryOn() async throws -> TryOnResponse {
         var request = URLRequest(url: baseURL.appending(path: "try-on"))
         request.httpMethod = "POST"
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: TryOnResponse.self)
     }
@@ -131,7 +98,6 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "me/assets")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: MeAssetsResponse.self)
     }
@@ -140,7 +106,6 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "user-photos")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         struct ListResponse: Decodable {
             let photos: [UserPhotoResponse]
@@ -171,7 +136,6 @@ final class TryOnAPIClient {
             forHTTPHeaderField: "Content-Type"
         )
         request.httpBody = body
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: UserPhotoResponse.self)
     }
@@ -180,7 +144,6 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "user-photos/\(slot)/image")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         return try await fetchImageData(request)
     }
@@ -204,10 +167,6 @@ final class TryOnAPIClient {
             throw TryOnAPIError.invalidResponse
         }
 
-        if httpResponse.statusCode == 401 {
-            throw TryOnAPIError.unauthorized
-        }
-
         if httpResponse.statusCode == 204 {
             return
         }
@@ -222,7 +181,6 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "generations")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: [GenerationResponse].self)
     }
@@ -231,7 +189,6 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "generations/\(id)/save")
         var request = URLRequest(url: url)
         request.httpMethod = "PATCH"
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: GenerationResponse.self)
     }
@@ -245,7 +202,6 @@ final class TryOnAPIClient {
 
         var request = URLRequest(url: components.url!)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         return try await send(request, decode: [GenerationResponse].self)
     }
@@ -254,12 +210,14 @@ final class TryOnAPIClient {
         let url = baseURL.appending(path: "generations/\(id)/image")
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        applyAuthHeader(to: &request)
 
         return try await fetchImageData(request)
     }
 
     private func fetchImageData(_ request: URLRequest) async throws -> Data {
+        var request = request
+        applyAuthHeader(to: &request)
+
         let data: Data
         let response: URLResponse
 
@@ -271,10 +229,6 @@ final class TryOnAPIClient {
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TryOnAPIError.invalidResponse
-        }
-
-        if httpResponse.statusCode == 401 {
-            throw TryOnAPIError.unauthorized
         }
 
         if !(200...299).contains(httpResponse.statusCode) {
@@ -288,6 +242,9 @@ final class TryOnAPIClient {
     }
 
     private func send<T: Decodable>(_ request: URLRequest, decode type: T.Type) async throws -> T {
+        var request = request
+        applyAuthHeader(to: &request)
+
         let data: Data
         let response: URLResponse
 
@@ -299,10 +256,6 @@ final class TryOnAPIClient {
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw TryOnAPIError.invalidResponse
-        }
-
-        if httpResponse.statusCode == 401 {
-            throw TryOnAPIError.unauthorized
         }
 
         if !(200...299).contains(httpResponse.statusCode) {

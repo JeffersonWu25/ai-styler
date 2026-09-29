@@ -101,9 +101,7 @@ cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 
 
 > **Note:** Set your Development Team in Xcode (Signing & Capabilities) before running on a physical device.
 
-Sign in with any email and password (8+ characters to sign up). No OAuth or Apple Developer Program setup required.
-
-If the `users` table already exists from earlier OAuth work, drop and recreate it on Railway Postgres before testing signup.
+The app opens on the tabs. API routes use the seeded development user; this build has no sign-in screen.
 
 ## Development phases
 

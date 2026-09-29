@@ -47,7 +47,6 @@ class Settings(BaseSettings):
 
     database_url: str = ""
     database_ssl_verify: bool = False
-    jwt_secret: str = "dev-only-change-me"
 
     s3_endpoint: str = ""
     s3_access_key_id: str = ""

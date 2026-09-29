@@ -97,7 +97,7 @@ struct SavedLookDetailView: View {
                 isSaved: true,
                 createdAt: .now
             ),
-            store: CollectionsStore(authService: AuthService())
+            store: CollectionsStore(apiClient: TryOnAPIClient())
         )
     }
 }

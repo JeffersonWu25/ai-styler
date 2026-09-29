@@ -29,10 +29,10 @@ final class TryOnSession {
     private(set) var isSaving = false
     var saveMessage: String?
 
-    private let authService: AuthService
+    private let apiClient: TryOnAPIClient
 
-    init(authService: AuthService) {
-        self.authService = authService
+    init(apiClient: TryOnAPIClient) {
+        self.apiClient = apiClient
     }
 
     var isGenerating: Bool {
@@ -52,7 +52,7 @@ final class TryOnSession {
         saveMessage = nil
 
         do {
-            let response = try await authService.apiClient.tryOn()
+            let response = try await apiClient.tryOn()
             guard let data = Data(base64Encoded: response.imageBase64),
                   let image = UIImage(data: data) else {
                 displayState = .failed("Could not decode the generated image.")
@@ -66,9 +66,6 @@ final class TryOnSession {
                     isSaved: false
                 )
             )
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            displayState = .failed("Your session expired. Please sign in again.")
         } catch {
             displayState = .failed(error.localizedDescription)
         }
@@ -78,10 +75,10 @@ final class TryOnSession {
         guard case .empty = displayState else { return }
 
         do {
-            let generations = try await authService.apiClient.fetchGenerations()
+            let generations = try await apiClient.fetchGenerations()
             guard let latest = generations.first else { return }
 
-            let data = try await authService.apiClient.fetchGenerationImage(id: latest.id)
+            let data = try await apiClient.fetchGenerationImage(id: latest.id)
             guard let image = UIImage(data: data) else { return }
 
             displayState = .ready(
@@ -92,8 +89,6 @@ final class TryOnSession {
                     isSaved: latest.isSaved
                 )
             )
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
         } catch {
             return
         }
@@ -108,13 +103,10 @@ final class TryOnSession {
         defer { isSaving = false }
 
         do {
-            _ = try await authService.apiClient.saveGeneration(id: result.generationId)
+            _ = try await apiClient.saveGeneration(id: result.generationId)
             result.isSaved = true
             displayState = .ready(result)
             saveMessage = "Saved to Collections."
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            saveMessage = "Your session expired. Please sign in again."
         } catch {
             saveMessage = error.localizedDescription
         }

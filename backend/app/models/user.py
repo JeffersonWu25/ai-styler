@@ -5,6 +5,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
+SEED_USER_ID = uuid.UUID("d21bf82d-306d-4bcc-b4ac-905d2736443f")
+
 
 class User(Base):
     __tablename__ = "users"

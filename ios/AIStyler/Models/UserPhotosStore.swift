@@ -8,10 +8,10 @@ final class UserPhotosStore {
     private(set) var isLoading = false
     var syncError: String?
 
-    private let authService: AuthService
+    private let apiClient: TryOnAPIClient
 
-    init(authService: AuthService) {
-        self.authService = authService
+    init(apiClient: TryOnAPIClient) {
+        self.apiClient = apiClient
     }
 
     func load() async {
@@ -20,16 +20,13 @@ final class UserPhotosStore {
         defer { isLoading = false }
 
         do {
-            let assets = try await authService.apiClient.fetchMeAssets()
+            let assets = try await apiClient.fetchMeAssets()
             for photo in assets.userPhotos {
                 guard let slot = PhotoSlot(rawValue: photo.slot) else { continue }
-                let data = try await authService.apiClient.fetchUserPhotoImage(slot: photo.slot)
+                let data = try await apiClient.fetchUserPhotoImage(slot: photo.slot)
                 guard let image = UIImage(data: data) else { continue }
                 userPhotos.setImage(image, for: slot)
             }
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            syncError = "Your session expired. Please sign in again."
         } catch {
             syncError = error.localizedDescription
         }
@@ -44,13 +41,10 @@ final class UserPhotosStore {
 
         syncError = nil
         do {
-            _ = try await authService.apiClient.uploadUserPhoto(
+            _ = try await apiClient.uploadUserPhoto(
                 slot: slot.rawValue,
                 jpegData: data
             )
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            syncError = "Your session expired. Please sign in again."
         } catch {
             syncError = error.localizedDescription
         }
@@ -61,10 +55,7 @@ final class UserPhotosStore {
         syncError = nil
 
         do {
-            try await authService.apiClient.deleteUserPhoto(slot: slot.rawValue)
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            syncError = "Your session expired. Please sign in again."
+            try await apiClient.deleteUserPhoto(slot: slot.rawValue)
         } catch {
             syncError = error.localizedDescription
         }

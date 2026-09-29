@@ -3,7 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @Bindable var userPhotosStore: UserPhotosStore
     @Bindable var tryOnSession: TryOnSession
-    @Bindable var authService: AuthService
+    let apiClient: TryOnAPIClient
 
     private var userPhotos: UserPhotos { userPhotosStore.userPhotos }
 
@@ -54,11 +54,6 @@ struct HomeView: View {
             }
             .navigationTitle("Home")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("Sign Out") {
-                        authService.signOut()
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Tips") { showOnboarding = true }
                 }
@@ -162,7 +157,7 @@ struct HomeView: View {
         defer { isCheckingBackend = false }
 
         do {
-            backendConnected = try await authService.apiClient.checkHealth()
+            backendConnected = try await apiClient.checkHealth()
         } catch {
             backendConnected = false
             backendError = error.localizedDescription
@@ -171,10 +166,10 @@ struct HomeView: View {
 }
 
 #Preview {
-    let authService = AuthService()
+    let apiClient = TryOnAPIClient()
     HomeView(
-        userPhotosStore: UserPhotosStore(authService: authService),
-        tryOnSession: TryOnSession(authService: authService),
-        authService: authService
+        userPhotosStore: UserPhotosStore(apiClient: apiClient),
+        tryOnSession: TryOnSession(apiClient: apiClient),
+        apiClient: apiClient
     )
 }

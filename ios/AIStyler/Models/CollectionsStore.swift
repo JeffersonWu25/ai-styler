@@ -9,10 +9,10 @@ final class CollectionsStore {
     var errorMessage: String?
 
     private var compositeCache: [String: UIImage] = [:]
-    private let authService: AuthService
+    private let apiClient: TryOnAPIClient
 
-    init(authService: AuthService) {
-        self.authService = authService
+    init(apiClient: TryOnAPIClient) {
+        self.apiClient = apiClient
     }
 
     func load() async {
@@ -21,10 +21,7 @@ final class CollectionsStore {
         defer { isLoading = false }
 
         do {
-            generations = try await authService.apiClient.fetchSavedGenerations()
-        } catch TryOnAPIError.unauthorized {
-            authService.signOut()
-            errorMessage = "Your session expired. Please sign in again."
+            generations = try await apiClient.fetchSavedGenerations()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -36,7 +33,7 @@ final class CollectionsStore {
         }
 
         do {
-            let data = try await authService.apiClient.fetchGenerationImage(id: generationId)
+            let data = try await apiClient.fetchGenerationImage(id: generationId)
             guard let image = UIImage(data: data) else { return nil }
             compositeCache[generationId] = image
             return image

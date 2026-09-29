@@ -69,5 +69,5 @@ struct ExploreView: View {
 }
 
 #Preview {
-    ExploreView(tryOnSession: TryOnSession(authService: AuthService()))
+    ExploreView(tryOnSession: TryOnSession(apiClient: TryOnAPIClient()))
 }

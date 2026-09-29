@@ -1,32 +1,23 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var authService = AuthService()
-
     var body: some View {
-        Group {
-            if authService.isCheckingSession {
-                ProgressView("Loading…")
-            } else if authService.isAuthenticated {
-                MainTabView(authService: authService)
-            } else {
-                LoginView(authService: authService)
-            }
-        }
+        MainTabView()
     }
 }
 
 private struct MainTabView: View {
-    @Bindable var authService: AuthService
+    @State private var apiClient: TryOnAPIClient
     @State private var tryOnSession: TryOnSession
     @State private var collectionsStore: CollectionsStore
     @State private var userPhotosStore: UserPhotosStore
 
-    init(authService: AuthService) {
-        self.authService = authService
-        _tryOnSession = State(initialValue: TryOnSession(authService: authService))
-        _collectionsStore = State(initialValue: CollectionsStore(authService: authService))
-        _userPhotosStore = State(initialValue: UserPhotosStore(authService: authService))
+    init() {
+        let apiClient = TryOnAPIClient()
+        _apiClient = State(initialValue: apiClient)
+        _tryOnSession = State(initialValue: TryOnSession(apiClient: apiClient))
+        _collectionsStore = State(initialValue: CollectionsStore(apiClient: apiClient))
+        _userPhotosStore = State(initialValue: UserPhotosStore(apiClient: apiClient))
     }
 
     var body: some View {
@@ -34,7 +25,7 @@ private struct MainTabView: View {
             HomeView(
                 userPhotosStore: userPhotosStore,
                 tryOnSession: tryOnSession,
-                authService: authService
+                apiClient: apiClient
             )
             .tabItem {
                 Label("Home", systemImage: "house")
