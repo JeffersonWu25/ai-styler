@@ -6,7 +6,6 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 BACKEND_ROOT = Path(__file__).resolve().parent.parent
-ASSETS_DIR = BACKEND_ROOT / "assets"
 
 
 def normalize_database_url(url: str) -> str:
@@ -18,6 +17,8 @@ def normalize_database_url(url: str) -> str:
 
 
 def database_connect_args(url: str, *, verify_ssl: bool) -> dict:
+    if not url.startswith("postgresql"):
+        return {}
     parsed = urlparse(url.replace("+asyncpg", ""))
     host = parsed.hostname or ""
     if host in {"127.0.0.1", "localhost"}:
@@ -43,7 +44,6 @@ class Settings(BaseSettings):
     openai_image_model: str = "gpt-image-2"
     openai_image_quality: str = "medium"
     openai_image_size: str = "1536x1024"
-    default_outfit_id: str = "old-money"
 
     database_url: str = ""
     database_ssl_verify: bool = False
@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     s3_secret_access_key: str = ""
     s3_bucket_name: str = ""
     s3_region: str = "auto"
+    s3_presign_expiry_seconds: int = 3600
 
     admin_api_key: str = ""
 

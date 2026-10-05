@@ -1,98 +1,66 @@
 import base64
-from pathlib import Path
+from dataclasses import dataclass
 
 import httpx
 
 from app.config import settings
+from app.errors import AppError, NotConfiguredError, UpstreamError
 
 OPENAI_IMAGES_EDITS_URL = "https://api.openai.com/v1/images/edits"
 
 
-class OpenAIImageError(Exception):
-    def __init__(self, message: str, status_code: int | None = None) -> None:
-        super().__init__(message)
-        self.status_code = status_code
+@dataclass(frozen=True)
+class InputImage:
+    filename: str
+    data: bytes
+    content_type: str
 
 
-async def generate_try_on(
-    *,
-    user_images: list[tuple[str, bytes]],
-    garment_paths: list[Path],
-    prompt: str,
-) -> bytes:
+async def generate_image(*, images: list[InputImage], prompt: str) -> bytes:
     if not settings.openai_api_key:
-        raise OpenAIImageError("OPENAI_API_KEY is not configured on the server.")
+        raise NotConfiguredError("OPENAI_API_KEY is not configured on the server.")
 
-    files: list[tuple[str, tuple[str, bytes, str]]] = []
-    for filename, image_bytes in user_images:
-        files.append(
-            (
-                "image[]",
-                (
-                    filename,
-                    image_bytes,
-                    _content_type(filename),
-                ),
-            )
-        )
-
-    for garment_path in garment_paths:
-        garment_bytes = garment_path.read_bytes()
-        files.append(
-            (
-                "image[]",
-                (
-                    garment_path.name,
-                    garment_bytes,
-                    _content_type(garment_path.name),
-                ),
-            )
-        )
-
+    files = [
+        ("image[]", (image.filename, image.data, image.content_type)) for image in images
+    ]
     data = {
         "model": settings.openai_image_model,
         "prompt": prompt,
         "size": settings.openai_image_size,
         "quality": settings.openai_image_quality,
     }
-
     headers = {"Authorization": f"Bearer {settings.openai_api_key}"}
-
     timeout = httpx.Timeout(connect=30.0, read=300.0, write=60.0, pool=30.0)
 
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.post(
-            OPENAI_IMAGES_EDITS_URL,
-            headers=headers,
-            data=data,
-            files=files,
-        )
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            response = await client.post(
+                OPENAI_IMAGES_EDITS_URL, headers=headers, data=data, files=files
+            )
+    except httpx.HTTPError as exc:
+        raise UpstreamError(f"Could not reach OpenAI: {exc}") from exc
 
     if response.status_code >= 400:
-        detail = response.text
-        try:
-            payload = response.json()
-            if isinstance(payload, dict) and "error" in payload:
-                error = payload["error"]
-                if isinstance(error, dict):
-                    detail = error.get("message", detail)
-        except Exception:
-            pass
-        raise OpenAIImageError(detail, status_code=response.status_code)
+        raise _error_from_response(response)
 
-    payload = response.json()
     try:
-        image_b64 = payload["data"][0]["b64_json"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise OpenAIImageError("OpenAI returned an unexpected response format.") from exc
-
-    return base64.b64decode(image_b64)
+        return base64.b64decode(response.json()["data"][0]["b64_json"])
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        raise UpstreamError("OpenAI returned an unexpected response format.") from exc
 
 
-def _content_type(filename: str) -> str:
-    lower = filename.lower()
-    if lower.endswith(".png"):
-        return "image/png"
-    if lower.endswith(".webp"):
-        return "image/webp"
-    return "image/jpeg"
+def _error_from_response(response: httpx.Response) -> AppError:
+    detail = response.text
+    try:
+        payload = response.json()
+    except ValueError:
+        payload = None
+    if isinstance(payload, dict) and isinstance(payload.get("error"), dict):
+        detail = payload["error"].get("message", detail)
+
+    # A rejected API key is a server misconfiguration, not the client's fault.
+    if response.status_code == 401:
+        return AppError(detail, status_code=500)
+    if response.status_code >= 500:
+        return UpstreamError(detail)
+    return AppError(detail, status_code=response.status_code)

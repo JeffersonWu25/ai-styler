@@ -7,8 +7,8 @@ Virtual try-on iOS app backed by a Python API and OpenAI GPT Image 2.
 ```
 ai-styler/
 ├── ios/          SwiftUI iPhone app
-├── backend/      FastAPI server (OpenAI proxy + admin listings API)
-├── admin/        Vite React admin UI for clothing listings
+├── backend/      FastAPI server (try-on, catalog, collections, admin API)
+├── admin/        Vite React admin UI for the clothing catalog
 ├── CLAUDE.md     High-level product summary
 └── PLAN.md       MVP implementation plan
 ```
@@ -43,7 +43,7 @@ Local development runs **uvicorn on your Mac** but stores data in **Railway Post
    ```
    The backend converts `postgres://` → `postgresql+asyncpg://` and enables SSL automatically.
 
-Tables are created on first startup. Use a separate Railway Postgres for production when you deploy the API.
+Use a separate Railway Postgres for production when you deploy the API.
 
 Verify the server is running:
 
@@ -54,9 +54,28 @@ curl http://localhost:8000/health
 
 API docs: http://localhost:8000/docs
 
-### Admin listing catalog
+Apply migrations with `alembic upgrade head` (see `REALREADME.md`).
 
-Manually add clothing listings (title, brand, URL, price, category, image). Stored in Postgres; images in S3.
+### API
+
+Images are never streamed through the API: responses include short-lived presigned S3 URLs (`imageUrl`). All JSON is camelCase; errors are `{ "detail": "..." }`.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /health` | Liveness check |
+| `GET /user` | Profile + `photos.front/side/back` (`null` when missing) |
+| `PUT /user/photos/{front\|side\|back}` | Multipart `image`; upload or replace a body photo |
+| `DELETE /user/photos/{slot}` | Remove a body photo |
+| `GET /outfits`, `GET /outfits/{id}` | Outfit catalog; detail includes clothing items |
+| `POST /try-ons` `{ outfitId }` | Generates synchronously from stored photos (409 if any are missing) |
+| `GET/POST /user/saved-looks`, `GET/DELETE /user/saved-looks/{id}` | Collections. `POST { tryOnId }` snapshots the outfit and its item images, so later catalog edits never change a saved look |
+| `/admin/clothes`, `/admin/outfits` | List / create (multipart) / get / delete. Require `X-Admin-Key` |
+
+Run tests with `python -m pytest` from `backend/`.
+
+### Admin catalog
+
+Add clothing items (category, name, brand, listing URL, image), then compose outfits from them. Stored in Postgres; images in S3.
 
 1. Set `ADMIN_API_KEY` in `backend/.env`.
 2. Start the backend (`uvicorn` as above).
@@ -77,11 +96,9 @@ cd admin && npm run build
 # then start uvicorn — UI is at http://localhost:8000/admin/
 ```
 
-### Try-on endpoint
+### Try-on
 
-`POST /try-on` accepts multipart fields `front`, `side`, and `back` (JPEG/PNG). It uses the user's **front** photo plus hardcoded garment references from `backend/assets/outfits/old-money/` and calls OpenAI `gpt-image-2`.
-
-Set `OPENAI_API_KEY` in `backend/.env` before testing try-on. Replace the placeholder garment PNGs with real clothing reference photos for better results.
+`POST /try-ons` sends the user's front, side, and back photos plus each clothing item's image in the outfit to OpenAI `gpt-image-2`. The prompt is built from the outfit's items in `backend/app/services/prompts.py`. Set `OPENAI_API_KEY` in `backend/.env` before testing try-on.
 
 ## iOS setup
 
