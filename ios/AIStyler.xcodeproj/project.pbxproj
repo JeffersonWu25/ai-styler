@@ -15,14 +15,17 @@
 		B10000030000000000000003 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000030000000000000003 /* AppConfig.swift */; };
 		B10000040000000000000004 /* ImageCompressor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000040000000000000004 /* ImageCompressor.swift */; };
 		B10000050000000000000005 /* PhotoValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000050000000000000005 /* PhotoValidator.swift */; };
-		B10000060000000000000006 /* TryOnAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000060000000000000006 /* TryOnAPIClient.swift */; };
+		B10000060000000000000006 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000060000000000000006 /* APIClient.swift */; };
+		B10000160000000000000016 /* APIModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000160000000000000016 /* APIModels.swift */; };
+		B10000170000000000000017 /* OutfitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000170000000000000017 /* OutfitStore.swift */; };
+		B10000180000000000000018 /* OutfitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000180000000000000018 /* OutfitDetailView.swift */; };
+		B10000190000000000000019 /* ImageCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000190000000000000019 /* ImageCache.swift */; };
 		B10000070000000000000007 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000070000000000000007 /* OnboardingView.swift */; };
 		B10000080000000000000008 /* PhotoSlotCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000080000000000000008 /* PhotoSlotCard.swift */; };
 		B10000090000000000000009 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000090000000000000009 /* HomeView.swift */; };
 		B100000A000000000000000A /* TryOnResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000A000000000000000A /* TryOnResultView.swift */; };
 		B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000B000000000000000B /* TryOnCompositeImage.swift */; };
 		B100000C000000000000000C /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000C000000000000000C /* ExploreView.swift */; };
-		B100000D000000000000000D /* TryOnSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000D000000000000000D /* TryOnSession.swift */; };
 		B10000110000000000000011 /* CollectionsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000110000000000000011 /* CollectionsStore.swift */; };
 		B10000120000000000000012 /* CollectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000120000000000000012 /* CollectionsView.swift */; };
 		B10000130000000000000013 /* SavedLookCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000130000000000000013 /* SavedLookCard.swift */; };
@@ -40,14 +43,17 @@
 		B20000030000000000000003 /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		B20000040000000000000004 /* ImageCompressor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCompressor.swift; sourceTree = "<group>"; };
 		B20000050000000000000005 /* PhotoValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoValidator.swift; sourceTree = "<group>"; };
-		B20000060000000000000006 /* TryOnAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnAPIClient.swift; sourceTree = "<group>"; };
+		B20000060000000000000006 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		B20000160000000000000016 /* APIModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIModels.swift; sourceTree = "<group>"; };
+		B20000170000000000000017 /* OutfitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitStore.swift; sourceTree = "<group>"; };
+		B20000180000000000000018 /* OutfitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutfitDetailView.swift; sourceTree = "<group>"; };
+		B20000190000000000000019 /* ImageCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageCache.swift; sourceTree = "<group>"; };
 		B20000070000000000000007 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		B20000080000000000000008 /* PhotoSlotCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoSlotCard.swift; sourceTree = "<group>"; };
 		B20000090000000000000009 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B200000A000000000000000A /* TryOnResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnResultView.swift; sourceTree = "<group>"; };
 		B200000B000000000000000B /* TryOnCompositeImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnCompositeImage.swift; sourceTree = "<group>"; };
 		B200000C000000000000000C /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
-		B200000D000000000000000D /* TryOnSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TryOnSession.swift; sourceTree = "<group>"; };
 		B20000110000000000000011 /* CollectionsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsStore.swift; sourceTree = "<group>"; };
 		B20000120000000000000012 /* CollectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionsView.swift; sourceTree = "<group>"; };
 		B20000130000000000000013 /* SavedLookCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedLookCard.swift; sourceTree = "<group>"; };
@@ -122,7 +128,8 @@
 				B20000030000000000000003 /* AppConfig.swift */,
 				B20000040000000000000004 /* ImageCompressor.swift */,
 				B20000050000000000000005 /* PhotoValidator.swift */,
-				B20000060000000000000006 /* TryOnAPIClient.swift */,
+				B20000060000000000000006 /* APIClient.swift */,
+				B20000190000000000000019 /* ImageCache.swift */,
 				B200000B000000000000000B /* TryOnCompositeImage.swift */,
 			);
 			path = Services;
@@ -133,7 +140,8 @@
 			children = (
 				B20000010000000000000001 /* PhotoSlot.swift */,
 				B20000020000000000000002 /* UserPhotos.swift */,
-				B200000D000000000000000D /* TryOnSession.swift */,
+				B20000160000000000000016 /* APIModels.swift */,
+				B20000170000000000000017 /* OutfitStore.swift */,
 				B20000110000000000000011 /* CollectionsStore.swift */,
 				B20000150000000000000015 /* UserPhotosStore.swift */,
 			);
@@ -176,6 +184,7 @@
 			isa = PBXGroup;
 			children = (
 				B200000C000000000000000C /* ExploreView.swift */,
+				B20000180000000000000018 /* OutfitDetailView.swift */,
 			);
 			path = Explore;
 			sourceTree = "<group>";
@@ -266,12 +275,15 @@
 				B10000030000000000000003 /* AppConfig.swift in Sources */,
 				B10000040000000000000004 /* ImageCompressor.swift in Sources */,
 				B10000050000000000000005 /* PhotoValidator.swift in Sources */,
-				B10000060000000000000006 /* TryOnAPIClient.swift in Sources */,
+				B10000060000000000000006 /* APIClient.swift in Sources */,
+				B10000160000000000000016 /* APIModels.swift in Sources */,
+				B10000170000000000000017 /* OutfitStore.swift in Sources */,
+				B10000180000000000000018 /* OutfitDetailView.swift in Sources */,
+				B10000190000000000000019 /* ImageCache.swift in Sources */,
 				B10000070000000000000007 /* OnboardingView.swift in Sources */,
 				B10000080000000000000008 /* PhotoSlotCard.swift in Sources */,
 				B10000090000000000000009 /* HomeView.swift in Sources */,
 				B100000C000000000000000C /* ExploreView.swift in Sources */,
-				B100000D000000000000000D /* TryOnSession.swift in Sources */,
 				B100000A000000000000000A /* TryOnResultView.swift in Sources */,
 				B100000B000000000000000B /* TryOnCompositeImage.swift in Sources */,
 				B10000110000000000000011 /* CollectionsStore.swift in Sources */,

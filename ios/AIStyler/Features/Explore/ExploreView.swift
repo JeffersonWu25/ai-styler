@@ -1,43 +1,51 @@
 import SwiftUI
 
 struct ExploreView: View {
-    @Bindable var tryOnSession: TryOnSession
+    @Bindable var outfitStore: OutfitStore
+    let userPhotos: UserPhotos
+    @Bindable var collectionsStore: CollectionsStore
 
     var body: some View {
         NavigationStack {
             Group {
-                switch tryOnSession.displayState {
-                case .empty:
-                    emptyState
-                case .loading:
+                if outfitStore.isLoading && outfitStore.outfits.isEmpty {
                     loadingState
-                case .ready(let result):
-                    TryOnResultView(
-                        compositeImage: result.compositeImage,
-                        outfitName: result.outfitName,
-                        isSaved: result.isSaved,
-                        isSaving: tryOnSession.isSaving,
-                        saveMessage: tryOnSession.saveMessage,
-                        onSave: {
-                            Task { await tryOnSession.saveCurrentGeneration() }
-                        },
-                        onDismiss: { tryOnSession.dismissResult() }
-                    )
-                case .failed(let message):
-                    failedState(message)
+                } else if let errorMessage = outfitStore.errorMessage, outfitStore.outfits.isEmpty {
+                    errorState(errorMessage)
+                } else if outfitStore.outfits.isEmpty {
+                    emptyState
+                } else {
+                    outfitList
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("Explore")
             .navigationBarTitleDisplayMode(.inline)
+            .refreshable {
+                await outfitStore.load()
+            }
+            .navigationDestination(for: UUID.self) { outfitId in
+                OutfitDetailView(
+                    outfitId: outfitId,
+                    outfitStore: outfitStore,
+                    userPhotos: userPhotos,
+                    collectionsStore: collectionsStore
+                )
+            }
         }
     }
 
-    private var emptyState: some View {
-        ContentUnavailableView {
-            Label("No looks yet", systemImage: "sparkles")
-        } description: {
-            Text("Generate a look from Home to see it here.")
+    private var outfitList: some View {
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                ForEach(outfitStore.outfits) { outfit in
+                    NavigationLink(value: outfit.id) {
+                        OutfitCard(outfit: outfit, outfitStore: outfitStore)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.vertical, 12)
         }
     }
 
@@ -45,29 +53,104 @@ struct ExploreView: View {
         VStack(spacing: 16) {
             ProgressView()
                 .controlSize(.large)
-            Text("Creating your look…")
+            Text("Loading outfits…")
                 .font(.headline)
-            Text("This can take up to 2 minutes.")
-                .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .padding()
     }
 
-    private func failedState(_ message: String) -> some View {
+    private var emptyState: some View {
         ContentUnavailableView {
-            Label("Generation failed", systemImage: "exclamationmark.triangle")
+            Label("No outfits yet", systemImage: "tshirt")
+        } description: {
+            Text("Outfits added to the catalog will show up here.")
+        }
+    }
+
+    private func errorState(_ message: String) -> some View {
+        ContentUnavailableView {
+            Label("Could not load outfits", systemImage: "exclamationmark.triangle")
         } description: {
             Text(message)
         } actions: {
-            Button("Dismiss") {
-                tryOnSession.dismissResult()
+            Button("Try Again") {
+                Task { await outfitStore.load() }
             }
             .buttonStyle(.borderedProminent)
         }
     }
 }
 
+private struct OutfitCard: View {
+    let outfit: OutfitSummary
+    let outfitStore: OutfitStore
+
+    @State private var image: UIImage?
+    @State private var isLoadingImage = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            imageContent
+            bottomGradient
+        }
+        .aspectRatio(3 / 4, contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal)
+        .task(id: outfit.id) {
+            guard let url = outfit.referenceImageUrl else { return }
+            isLoadingImage = true
+            image = await outfitStore.image(forKey: "outfit-ref-\(outfit.id.uuidString)", url: url)
+            isLoadingImage = false
+        }
+    }
+
+    @ViewBuilder
+    private var imageContent: some View {
+        if let image {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .clipped()
+        } else if isLoadingImage {
+            Color(.secondarySystemBackground)
+                .overlay {
+                    ProgressView()
+                }
+        } else {
+            Color(.secondarySystemBackground)
+                .overlay {
+                    Image(systemName: "tshirt")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
+                }
+        }
+    }
+
+    private var bottomGradient: some View {
+        Text(outfit.name)
+            .font(.title3.bold())
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background {
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.75)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
+    }
+}
+
 #Preview {
-    ExploreView(tryOnSession: TryOnSession(apiClient: TryOnAPIClient()))
+    let apiClient = APIClient()
+    let imageCache = ImageCache(apiClient: apiClient)
+    ExploreView(
+        outfitStore: OutfitStore(apiClient: apiClient, imageCache: imageCache),
+        userPhotos: UserPhotos(),
+        collectionsStore: CollectionsStore(apiClient: apiClient, imageCache: imageCache)
+    )
 }

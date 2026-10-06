@@ -2,34 +2,29 @@ import SwiftUI
 
 struct TryOnResultView: View {
     let compositeImage: UIImage
-    let outfitName: String
     let isSaved: Bool
     let isSaving: Bool
     let saveMessage: String?
     let onSave: () -> Void
-    let onDismiss: () -> Void
 
     private var panels: [PhotoSlot: UIImage] {
         TryOnCompositeImage.panels(from: compositeImage)
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
-                Text(outfitName)
-                    .font(.title2.bold())
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Your try-on")
+                .font(.title2.bold())
 
-                if panels.count == PhotoSlot.allCases.count {
-                    ForEach(PhotoSlot.allCases) { slot in
-                        panelSection(for: slot)
-                    }
-                } else {
-                    fallbackSection
+            if panels.count == PhotoSlot.allCases.count {
+                ForEach(PhotoSlot.allCases) { slot in
+                    panelSection(for: slot)
                 }
-
-                actionFooter
+            } else {
+                fallbackSection
             }
-            .padding()
+
+            actionFooter
         }
     }
 
@@ -51,15 +46,10 @@ struct TryOnResultView: View {
     }
 
     private var fallbackSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Try-On Result")
-                .font(.headline)
-
-            Image(uiImage: compositeImage)
-                .resizable()
-                .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-        }
+        Image(uiImage: compositeImage)
+            .resizable()
+            .scaledToFit()
+            .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
     private var actionFooter: some View {
@@ -85,25 +75,17 @@ struct TryOnResultView: View {
                     .foregroundStyle(isSaved ? Color.secondary : Color.red)
                     .multilineTextAlignment(.center)
             }
-
-            Button(action: onDismiss) {
-                Label("Close", systemImage: "xmark")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
         }
-        .padding(.top, 8)
     }
 }
 
 #Preview {
     TryOnResultView(
         compositeImage: UIImage(systemName: "person.fill")!,
-        outfitName: "Streetwear",
         isSaved: false,
         isSaving: false,
         saveMessage: nil,
-        onSave: {},
-        onDismiss: {}
+        onSave: {}
     )
+    .padding()
 }

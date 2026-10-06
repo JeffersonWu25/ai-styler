@@ -4,6 +4,7 @@ struct SavedLookCard: View {
     let outfitName: String
     let createdAt: Date
     let frontImage: UIImage?
+    var isLoadingImage = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -23,10 +24,17 @@ struct SavedLookCard: View {
                 .scaledToFill()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipped()
-        } else {
+        } else if isLoadingImage {
             Color(.secondarySystemBackground)
                 .overlay {
                     ProgressView()
+                }
+        } else {
+            Color(.secondarySystemBackground)
+                .overlay {
+                    Image(systemName: "photo")
+                        .font(.largeTitle)
+                        .foregroundStyle(.secondary)
                 }
         }
     }

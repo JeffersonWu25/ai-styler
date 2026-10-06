@@ -2,8 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Bindable var userPhotosStore: UserPhotosStore
-    @Bindable var tryOnSession: TryOnSession
-    let apiClient: TryOnAPIClient
+    let apiClient: APIClient
 
     private var userPhotos: UserPhotos { userPhotosStore.userPhotos }
 
@@ -48,7 +47,10 @@ struct HomeView: View {
                         }
                     }
 
-                    generateSection
+                    Text("Choose an outfit in Explore to try it on.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding()
             }
@@ -108,48 +110,6 @@ struct HomeView: View {
         )
     }
 
-    private var generateSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Outfit")
-                .font(.headline)
-            Text(AppConfig.defaultOutfitName)
-                .font(.title3.bold())
-
-            Button {
-                Task { await tryOnSession.generate(from: userPhotos) }
-            } label: {
-                Text(tryOnSession.isGenerating ? "Generating…" : "Generate")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(!isReadyToGenerate)
-
-            if !userPhotos.isComplete {
-                Text("Add valid front, side, and back photos to continue.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else if backendConnected != true {
-                Text("Connect to the backend before generating.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            } else {
-                Text("Your look will appear in Explore.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
-    }
-
-    private var isReadyToGenerate: Bool {
-        userPhotos.isComplete && backendConnected == true && !tryOnSession.isGenerating
-    }
-
     @MainActor
     private func refreshBackendStatus() async {
         isCheckingBackend = true
@@ -166,10 +126,9 @@ struct HomeView: View {
 }
 
 #Preview {
-    let apiClient = TryOnAPIClient()
+    let apiClient = APIClient()
     HomeView(
-        userPhotosStore: UserPhotosStore(apiClient: apiClient),
-        tryOnSession: TryOnSession(apiClient: apiClient),
+        userPhotosStore: UserPhotosStore(apiClient: apiClient, imageCache: ImageCache(apiClient: apiClient)),
         apiClient: apiClient
     )
 }

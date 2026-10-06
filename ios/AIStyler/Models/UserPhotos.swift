@@ -35,6 +35,11 @@ final class UserPhotos {
         validationErrors[slot] = nil
     }
 
+    func restore(_ image: UIImage, for slot: PhotoSlot) {
+        images[slot] = image
+        validationErrors[slot] = nil
+    }
+
     func clear(slot: PhotoSlot) {
         images[slot] = nil
         validationErrors[slot] = nil

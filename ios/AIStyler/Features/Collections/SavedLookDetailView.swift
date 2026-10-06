@@ -1,15 +1,16 @@
 import SwiftUI
 
 struct SavedLookDetailView: View {
-    let generation: GenerationResponse
+    let look: SavedLook
     @Bindable var store: CollectionsStore
 
     @State private var panels: [PhotoSlot: UIImage] = [:]
     @State private var selectedSlot: PhotoSlot = .front
     @State private var isLoading = true
+    @State private var itemImages: [Int: UIImage] = [:]
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        Group {
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -20,20 +21,66 @@ struct SavedLookDetailView: View {
                     Text("This look could not be loaded.")
                 }
             } else {
-                anglePager
-                bottomOverlay
+                detail
             }
         }
-        .background(Color.black)
+        .navigationTitle(look.outfit.name)
         .navigationBarTitleDisplayMode(.inline)
         .task {
-            await loadPanels()
+            await load()
         }
+    }
+
+    private var detail: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                anglePager
+                    .frame(height: 520)
+                    .background(Color.black)
+
+                if panels.count > 1 {
+                    Picker("Angle", selection: $selectedSlot) {
+                        ForEach(availableSlots) { slot in
+                            Text(slot.title).tag(slot)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(look.outfit.name)
+                        .font(.title3.bold())
+                    Text(look.createdAt.formatted(date: .abbreviated, time: .omitted))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                if !look.outfit.items.isEmpty {
+                    Text("Pieces")
+                        .font(.headline)
+
+                    ForEach(Array(look.outfit.items.enumerated()), id: \.offset) { index, item in
+                        ClothingPieceRow(
+                            category: item.category,
+                            name: item.name,
+                            brand: item.brand,
+                            listingUrl: item.listingUrl,
+                            image: itemImages[index]
+                        )
+                    }
+                }
+            }
+            .padding()
+        }
+    }
+
+    private var availableSlots: [PhotoSlot] {
+        PhotoSlot.allCases.filter { panels[$0] != nil }
     }
 
     private var anglePager: some View {
         TabView(selection: $selectedSlot) {
-            ForEach(PhotoSlot.allCases) { slot in
+            ForEach(availableSlots) { slot in
                 if let panel = panels[slot] {
                     Image(uiImage: panel)
                         .resizable()
@@ -44,60 +91,21 @@ struct SavedLookDetailView: View {
             }
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
     }
 
-    private var bottomOverlay: some View {
-        VStack(spacing: 12) {
-            Picker("Angle", selection: $selectedSlot) {
-                ForEach(PhotoSlot.allCases) { slot in
-                    Text(slot.title).tag(slot)
-                }
-            }
-            .pickerStyle(.segmented)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(generation.outfitName)
-                    .font(.title3.bold())
-                    .foregroundStyle(.white)
-
-                Text(generation.createdAt.formatted(date: .abbreviated, time: .omitted))
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.85))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding()
-        .background {
-            LinearGradient(
-                colors: [.clear, .black.opacity(0.85)],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-        }
-    }
-
-    private func loadPanels() async {
-        isLoading = true
+    private func load() async {
+        isLoading = panels.isEmpty
         defer { isLoading = false }
 
-        let loaded = await store.panels(for: generation.id)
+        let loaded = await store.panels(for: look)
         panels = loaded
         if panels[selectedSlot] == nil {
-            selectedSlot = PhotoSlot.allCases.first { panels[$0] != nil } ?? .front
+            selectedSlot = availableSlots.first ?? .front
         }
-    }
-}
 
-#Preview {
-    NavigationStack {
-        SavedLookDetailView(
-            generation: GenerationResponse(
-                id: "preview",
-                outfitName: "Streetwear",
-                isSaved: true,
-                createdAt: .now
-            ),
-            store: CollectionsStore(apiClient: TryOnAPIClient())
-        )
+        for (index, item) in look.outfit.items.enumerated() {
+            itemImages[index] = await store.itemImage(lookId: look.id, index: index, url: item.imageUrl)
+        }
     }
 }

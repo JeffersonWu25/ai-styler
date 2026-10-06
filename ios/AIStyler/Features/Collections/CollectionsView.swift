@@ -2,16 +2,16 @@ import SwiftUI
 
 struct CollectionsView: View {
     @Bindable var store: CollectionsStore
-    @Bindable var tryOnSession: TryOnSession
+    @Binding var selectedTab: AppTab
 
     var body: some View {
         NavigationStack {
             Group {
-                if store.isLoading && store.generations.isEmpty {
+                if store.isLoading && store.looks.isEmpty {
                     loadingState
-                } else if let errorMessage = store.errorMessage, store.generations.isEmpty {
+                } else if let errorMessage = store.errorMessage, store.looks.isEmpty {
                     errorState(errorMessage)
-                } else if store.generations.isEmpty {
+                } else if store.looks.isEmpty {
                     emptyState
                 } else {
                     closetList
@@ -26,8 +26,10 @@ struct CollectionsView: View {
             .task {
                 await store.load()
             }
-            .navigationDestination(for: GenerationResponse.self) { generation in
-                SavedLookDetailView(generation: generation, store: store)
+            .navigationDestination(for: UUID.self) { lookId in
+                if let look = store.looks.first(where: { $0.id == lookId }) {
+                    SavedLookDetailView(look: look, store: store)
+                }
             }
         }
     }
@@ -35,12 +37,9 @@ struct CollectionsView: View {
     private var closetList: some View {
         ScrollView {
             LazyVStack(spacing: 12) {
-                ForEach(store.generations) { generation in
-                    NavigationLink(value: generation) {
-                        SavedLookRow(
-                            generation: generation,
-                            store: store
-                        )
+                ForEach(store.looks) { look in
+                    NavigationLink(value: look.id) {
+                        SavedLookRow(look: look, store: store)
                     }
                     .buttonStyle(.plain)
                 }
@@ -64,10 +63,10 @@ struct CollectionsView: View {
         ContentUnavailableView {
             Label("No saved looks", systemImage: "bookmark")
         } description: {
-            Text("Save a look from Explore to see it here.")
+            Text("Save a look from an outfit to see it here.")
         } actions: {
             Button("Go to Explore") {
-                tryOnSession.selectedTab = .explore
+                selectedTab = .explore
             }
             .buttonStyle(.borderedProminent)
         }
@@ -88,27 +87,32 @@ struct CollectionsView: View {
 }
 
 private struct SavedLookRow: View {
-    let generation: GenerationResponse
+    let look: SavedLook
     let store: CollectionsStore
 
     @State private var frontImage: UIImage?
+    @State private var isLoadingImage = false
 
     var body: some View {
         SavedLookCard(
-            outfitName: generation.outfitName,
-            createdAt: generation.createdAt,
-            frontImage: frontImage
+            outfitName: look.outfit.name,
+            createdAt: look.createdAt,
+            frontImage: frontImage,
+            isLoadingImage: isLoadingImage
         )
         .padding(.horizontal)
-        .task(id: generation.id) {
-            frontImage = await store.frontPanel(for: generation.id)
+        .task(id: look.id) {
+            isLoadingImage = true
+            frontImage = await store.frontPanel(for: look)
+            isLoadingImage = false
         }
     }
 }
 
 #Preview {
+    let apiClient = APIClient()
     CollectionsView(
-        store: CollectionsStore(apiClient: TryOnAPIClient()),
-        tryOnSession: TryOnSession(apiClient: TryOnAPIClient())
+        store: CollectionsStore(apiClient: apiClient, imageCache: ImageCache(apiClient: apiClient)),
+        selectedTab: .constant(.collections)
     )
 }
